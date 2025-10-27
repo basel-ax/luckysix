@@ -34,6 +34,7 @@ func (service *TasksService) StartTasks(cfg *config.Config) {
 
 	//gocron.Every(1).Minute().From(gocron.NextTick()).Do(service.EveryMinuteTask, cfg)
 	gocron.Every(10).Minute().From(gocron.NextTick()).Do(service.CheckWalletBalances)
+	gocron.Every(15).Minute().From(gocron.NextTick()).Do(service.NotifyWallets)
 	//gocron.Every(10).Minute().From(gocron.NextTick()).Do(service.EveryTenMinuteTask, cfg)
 	gocron.Every(24).Hours().From(gocron.NextTick()).Do(service.EveryDayTask, cfg)
 
@@ -174,6 +175,19 @@ func (service *TasksService) CheckWalletBalances() {
 			service.log.Error(fmt.Errorf("CheckWalletBalances task failed: %w", err))
 		} else {
 			service.log.Info("Task finished successfully: CheckWalletBalances")
+		}
+	}()
+}
+
+// NotifyWallets checks for wallets with positive balances and sends notifications.
+func (service *TasksService) NotifyWallets() {
+	service.log.Info("Task started: NotifyWallets")
+	go func() {
+		err := service.blockchain.NotifyOnPositiveBalance(context.Background())
+		if err != nil {
+			service.log.Error(fmt.Errorf("NotifyWallets task failed: %w", err))
+		} else {
+			service.log.Info("Task finished successfully: NotifyWallets")
 		}
 	}()
 }

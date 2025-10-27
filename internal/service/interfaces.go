@@ -67,6 +67,7 @@ type (
 	Blockchain interface {
 		ProcessLuckySixCombinations(ctx context.Context, count int) error
 		UpdateWalletBalances(ctx context.Context, limit int) error
+		NotifyOnPositiveBalance(ctx context.Context) error
 	}
 
 	// WalletBalanceRepo -.
@@ -75,5 +76,12 @@ type (
 		GetLastProcessedLuckySixID(ctx context.Context) (uint, error)
 		GetWalletsForBalanceCheck(ctx context.Context, limit int) ([]entity.WalletBalance, error)
 		UpdateBalances(ctx context.Context, balances []entity.WalletBalance) error
+		GetPositiveBalanceWallets(ctx context.Context, limit int) ([]entity.WalletBalance, error)
+		MarkAsNotified(ctx context.Context, walletIDs []uint) error
+	}
+
+	// Telegram -.
+	Telegram interface {
+		SendNotification(message string) error
 	}
 )
