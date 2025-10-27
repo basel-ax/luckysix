@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/basel-ax/luckysix/pkg/logger"
 	rmqrpc "github.com/basel-ax/luckysix/pkg/rabbitmq/rmq_rpc"
