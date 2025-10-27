@@ -45,3 +45,34 @@ func (r *LuckySixRepo) StoreBatch(ctx context.Context, luckySixes []entity.Lucky
 
 	return nil
 }
+
+// GetBatchStartingFromID fetches a batch of LuckySix records with IDs greater than the startID.
+func (r *LuckySixRepo) GetBatchStartingFromID(ctx context.Context, startID uint, limit int) ([]entity.LuckySix, error) {
+	sql, args, err := r.Builder.
+		Select("id", "lucky_five_id", "lucky_two_id").
+		From("lucky_sixes").
+		Where("id > ?", startID).
+		OrderBy("id ASC").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("LuckySixRepo - GetBatchStartingFromID - r.Builder: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("LuckySixRepo - GetBatchStartingFromID - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	var results []entity.LuckySix
+	for rows.Next() {
+		var ls entity.LuckySix
+		if err := rows.Scan(&ls.ID, &ls.LuckyFiveID, &ls.LuckyTwoID); err != nil {
+			return nil, fmt.Errorf("LuckySixRepo - GetBatchStartingFromID - rows.Scan: %w", err)
+		}
+		results = append(results, ls)
+	}
+
+	return results, nil
+}

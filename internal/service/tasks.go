@@ -14,14 +14,16 @@ import (
 )
 
 type TasksService struct {
-	log   *log.Logger
-	bip39 Bip39
+	log        *log.Logger
+	bip39      Bip39
+	blockchain Blockchain
 }
 
-func NewTasksService(l *log.Logger, bip39 Bip39) *TasksService {
+func NewTasksService(l *log.Logger, bip39 Bip39, blockchain Blockchain) *TasksService {
 	return &TasksService{
-		log:   l,
-		bip39: bip39,
+		log:        l,
+		bip39:      bip39,
+		blockchain: blockchain,
 	}
 }
 
@@ -111,6 +113,21 @@ func (service *TasksService) GenerateLuckyTwo() {
 			service.log.Error(fmt.Errorf("GenerateLuckyTwo task failed: %w", err))
 		} else {
 			service.log.Info("Task finished successfully: GenerateLuckyTwo")
+		}
+	}()
+}
+
+// ProcessWallets finds unprocessed LuckySix combinations and generates wallet data for them.
+func (service *TasksService) ProcessWallets() {
+	const combinationsToProcess = 100 // Process 100 at a time to avoid long-running tasks
+
+	service.log.Info("Task started: ProcessWallets", "count", combinationsToProcess)
+	go func() {
+		err := service.blockchain.ProcessLuckySixCombinations(context.Background(), combinationsToProcess)
+		if err != nil {
+			service.log.Error(fmt.Errorf("ProcessWallets task failed: %w", err))
+		} else {
+			service.log.Info("Task finished successfully: ProcessWallets")
 		}
 	}()
 }

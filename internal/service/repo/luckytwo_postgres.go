@@ -61,3 +61,36 @@ func (r *LuckyTwoRepo) Count(ctx context.Context) (int64, error) {
 
 	return count, nil
 }
+
+// GetByIDs fetches multiple Luckytwo entities by their primary keys.
+func (r *LuckyTwoRepo) GetByIDs(ctx context.Context, ids []uint) (map[uint]entity.Luckytwo, error) {
+	if len(ids) == 0 {
+		return make(map[uint]entity.Luckytwo), nil
+	}
+
+	sql, args, err := r.Builder.
+		Select("id", "word_one", "word_two").
+		From("luckytwos").
+		Where("id = ANY(?)", ids).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("LuckyTwoRepo - GetByIDs - r.Builder: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("LuckyTwoRepo - GetByIDs - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	results := make(map[uint]entity.Luckytwo)
+	for rows.Next() {
+		var lt entity.Luckytwo
+		if err := rows.Scan(&lt.ID, &lt.WordOne, &lt.WordTwo); err != nil {
+			return nil, fmt.Errorf("LuckyTwoRepo - GetByIDs - rows.Scan: %w", err)
+		}
+		results[lt.ID] = lt
+	}
+
+	return results, nil
+}

@@ -9,3 +9,15 @@ type WalletBalance struct {
 	LuckySixID   uint
 	Balance      decimal.Decimal `json:"amount" sql:"type:decimal(20,8);"`
 }
+package entity
+
+import "gorm.io/gorm"
+
+// WalletBalance stores the generated mnemonic, address, and balance for a LuckySix combination.
+type WalletBalance struct {
+	gorm.Model
+	LuckySixID uint   `gorm:"column:lucky_six_id;uniqueIndex"`
+	Mnemonic   string `gorm:"column:mnemonic"`
+	Address    string `gorm:"column:address"`
+	Balance    string `gorm:"column:balance"` // Stored as string to handle large numbers
+}

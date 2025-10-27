@@ -47,16 +47,30 @@ type (
 	LuckyTwoRepo interface {
 		StoreBatch(context.Context, []entity.Luckytwo) error
 		Count(ctx context.Context) (int64, error)
+		GetByIDs(ctx context.Context, ids []uint) (map[uint]entity.Luckytwo, error)
 	}
 
 	// LuckyFiveRepo -.
 	LuckyFiveRepo interface {
 		StoreBatch(ctx context.Context, luckyFives []entity.LuckyFive) error
 		Count(ctx context.Context) (int64, error)
+		GetByID(ctx context.Context, id uint) (entity.LuckyFive, error)
 	}
 
 	// LuckySixRepo -.
 	LuckySixRepo interface {
 		StoreBatch(ctx context.Context, luckySixes []entity.LuckySix) error
+		GetBatchStartingFromID(ctx context.Context, startID uint, limit int) ([]entity.LuckySix, error)
+	}
+
+	// Blockchain -.
+	Blockchain interface {
+		ProcessLuckySixCombinations(ctx context.Context, count int) error
+	}
+
+	// WalletBalanceRepo -.
+	WalletBalanceRepo interface {
+		StoreBatch(ctx context.Context, balances []entity.WalletBalance) error
+		GetLastProcessedLuckySixID(ctx context.Context) (uint, error)
 	}
 )

@@ -62,3 +62,27 @@ func (r *LuckyFiveRepo) Count(ctx context.Context) (int64, error) {
 
 	return count, nil
 }
+
+// GetByID fetches a single LuckyFive entity by its primary key.
+func (r *LuckyFiveRepo) GetByID(ctx context.Context, id uint) (entity.LuckyFive, error) {
+	sql, args, err := r.Builder.
+		Select("id", "pair_one", "pair_two", "pair_three", "pair_four", "pair_five").
+		From("luckyfives").
+		Where("id = ?", id).
+		Limit(1).
+		ToSql()
+	if err != nil {
+		return entity.LuckyFive{}, fmt.Errorf("LuckyFiveRepo - GetByID - r.Builder: %w", err)
+	}
+
+	var lf entity.LuckyFive
+	err = r.Pool.QueryRow(ctx, sql, args...).Scan(&lf.ID, &lf.PairOne, &lf.PairTwo, &lf.PairThree, &lf.PairFour, &lf.PairFive)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.LuckyFive{}, fmt.Errorf("LuckyFiveRepo - GetByID - not found for id %d", id)
+		}
+		return entity.LuckyFive{}, fmt.Errorf("LuckyFiveRepo - GetByID - r.Pool.QueryRow: %w", err)
+	}
+
+	return lf, nil
+}
