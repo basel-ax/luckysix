@@ -112,3 +112,18 @@ func (service *TasksService) GenerateLuckyTwo() {
 		}
 	}()
 }
+
+// GenerateLuckyFive starts the generation of a batch of LuckyFive combinations.
+func (service *TasksService) GenerateLuckyFive() {
+	const combinationsToGenerate = 10000 // Define how many to generate per task run
+
+	service.log.Info("Task started: GenerateLuckyFive", "count", combinationsToGenerate)
+	go func() {
+		err := service.bip39.GenerateAndStoreLuckyFiveCombinations(context.Background(), combinationsToGenerate)
+		if err != nil {
+			service.log.Error(fmt.Errorf("GenerateLuckyFive task failed: %w", err))
+		} else {
+			service.log.Info("Task finished successfully: GenerateLuckyFive")
+		}
+	}()
+}
