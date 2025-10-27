@@ -1,8 +1,6 @@
 package amqprpc
 
 import (
-	"github.com/streadway/amqp"
-
 	"github.com/basel-ax/luckysix/internal/service"
 	"github.com/basel-ax/luckysix/pkg/rabbitmq/rmq_rpc/server"
 )

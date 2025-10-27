@@ -28,3 +28,4 @@ mysql
 
 #Config
 config/config.yml
+.aider*
