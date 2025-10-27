@@ -6,6 +6,7 @@ require (
 	github.com/Conight/go-googletrans v0.2.4
 	github.com/Eun/go-hit v0.5.23
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/alexvec/go-bip39 v1.1.0
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
@@ -16,7 +17,6 @@ require (
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/redis/go-redis/v9 v9.16.0
 	github.com/rs/zerolog v1.34.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.11.1
@@ -25,8 +25,6 @@ require (
 	go.mongodb.org/mongo-driver v1.17.4
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.0
-	github.com/alexvec/go-bip39 v1.0.1
-	github.com/shomali11/parallelizer v0.1.2
 )
 
 require (
@@ -49,7 +47,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/ethereum/c-kzg-4844/v2 v2.1.5 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
