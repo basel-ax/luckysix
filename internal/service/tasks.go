@@ -41,13 +41,8 @@ func (service *TasksService) EveryDayTask(cfg *config.Config) {
 
 	//ctx := context.Background()
 	/*
-		Create new LuckyFive from 5-pairs LuckyTwo by random as LuckyFive, without repeat
-		Foreach LuckyTwo as 6 part and LuckyFive - generate LuckySix.
-		Get wallet address by LuckySix & https://github.com/tyler-smith/go-bip39
-		Check wallet balance in various ETH blockchains, create list in DB with params for blockchains - BlockchainService
-		If wallet balance > 0 in any blockchain - send link to telegram chat https://debank.com/profile/{walletAddress}
-		[parallelizer](https://github.com/shomali11/parallelizer)
-	*/
+
+	 */
 
 	service.log.Info("End EveryDayTask")
 }
