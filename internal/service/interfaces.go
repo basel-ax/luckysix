@@ -30,6 +30,10 @@ type (
 	// Tasks -.
 	Tasks interface {
 		CheckRabbitTask() string
+		GenerateLuckyTwo()
+		GenerateLuckyFive()
+		GenerateLuckySix()
+		ProcessWallets()
 	}
 
 	// PoolRepo -.
