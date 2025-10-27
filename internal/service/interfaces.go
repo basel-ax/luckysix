@@ -51,7 +51,7 @@ type (
 
 	// LuckyFiveRepo -.
 	LuckyFiveRepo interface {
-		StoreBatch(ctx context.Context, luckyFives []entity.Luckyfive) error
+		StoreBatch(ctx context.Context, luckyFives []entity.LuckyFive) error
 		Count(ctx context.Context) (int64, error)
 	}
 

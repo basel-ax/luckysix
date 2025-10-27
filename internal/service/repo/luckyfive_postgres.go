@@ -18,8 +18,8 @@ func NewLuckyFiveRepo(pg *postgres.Postgres) *LuckyFiveRepo {
 	return &LuckyFiveRepo{pg}
 }
 
-// StoreBatch stores a batch of Luckyfive entities.
-func (r *LuckyFiveRepo) StoreBatch(ctx context.Context, luckyFives []entity.Luckyfive) error {
+// StoreBatch stores a batch of LuckyFive entities.
+func (r *LuckyFiveRepo) StoreBatch(ctx context.Context, luckyFives []entity.LuckyFive) error {
 	if len(luckyFives) == 0 {
 		return nil
 	}

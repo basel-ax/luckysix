@@ -126,7 +126,7 @@ func (s *Bip39Service) GenerateAndStoreLuckyFiveCombinations(ctx context.Context
 			// Seed the random number generator for each goroutine to ensure randomness.
 			source := rand.NewSource(time.Now().UnixNano() + int64(workerNum))
 			random := rand.New(source)
-			batch := make([]entity.Luckyfive, 0, batchSize)
+			batch := make([]entity.LuckyFive, 0, batchSize)
 
 			for j := 0; j < jobs; j++ {
 				pickedIDs := make(map[uint]struct{}, 5)
@@ -141,7 +141,7 @@ func (s *Bip39Service) GenerateAndStoreLuckyFiveCombinations(ctx context.Context
 					}
 				}
 
-				luckyFive := entity.Luckyfive{
+				luckyFive := entity.LuckyFive{
 					PairOne:   pairs[0],
 					PairTwo:   pairs[1],
 					PairThree: pairs[2],
@@ -159,7 +159,7 @@ func (s *Bip39Service) GenerateAndStoreLuckyFiveCombinations(ctx context.Context
 						s.logger.Error(fmt.Errorf("worker %d failed to store batch: %w", workerNum, err))
 						return err // Propagate error to parallelizer
 					}
-					batch = make([]entity.Luckyfive, 0, batchSize) // Reset batch
+					batch = make([]entity.LuckyFive, 0, batchSize) // Reset batch
 				}
 			}
 

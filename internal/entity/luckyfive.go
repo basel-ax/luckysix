@@ -2,8 +2,8 @@ package entity
 
 import "gorm.io/gorm"
 
-// Luckyfive represents a combination of 5 LuckyTwo pair IDs.
-type Luckyfive struct {
+// LuckyFive represents a combination of 5 LuckyTwo pair IDs.
+type LuckyFive struct {
 	gorm.Model
 	PairOne   uint `gorm:"column:pair_one"`
 	PairTwo   uint `gorm:"column:pair_two"`
