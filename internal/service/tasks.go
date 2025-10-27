@@ -33,6 +33,7 @@ func (service *TasksService) StartTasks(cfg *config.Config) {
 	gocron.Clear()
 
 	//gocron.Every(1).Minute().From(gocron.NextTick()).Do(service.EveryMinuteTask, cfg)
+	gocron.Every(10).Minute().From(gocron.NextTick()).Do(service.CheckWalletBalances)
 	//gocron.Every(10).Minute().From(gocron.NextTick()).Do(service.EveryTenMinuteTask, cfg)
 	gocron.Every(24).Hours().From(gocron.NextTick()).Do(service.EveryDayTask, cfg)
 
@@ -158,6 +159,21 @@ func (service *TasksService) GenerateLuckySix() {
 			service.log.Error(fmt.Errorf("GenerateLuckySix task failed: %w", err))
 		} else {
 			service.log.Info("Task finished successfully: GenerateLuckySix")
+		}
+	}()
+}
+
+// CheckWalletBalances starts the process of checking and updating wallet balances.
+func (service *TasksService) CheckWalletBalances() {
+	const walletsToCheck = 50 // Check 50 wallets per run to avoid hitting RPC rate limits
+
+	service.log.Info("Task started: CheckWalletBalances", "count", walletsToCheck)
+	go func() {
+		err := service.blockchain.UpdateWalletBalances(context.Background(), walletsToCheck)
+		if err != nil {
+			service.log.Error(fmt.Errorf("CheckWalletBalances task failed: %w", err))
+		} else {
+			service.log.Info("Task finished successfully: CheckWalletBalances")
 		}
 	}()
 }

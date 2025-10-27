@@ -66,11 +66,14 @@ type (
 	// Blockchain -.
 	Blockchain interface {
 		ProcessLuckySixCombinations(ctx context.Context, count int) error
+		UpdateWalletBalances(ctx context.Context, limit int) error
 	}
 
 	// WalletBalanceRepo -.
 	WalletBalanceRepo interface {
 		StoreBatch(ctx context.Context, balances []entity.WalletBalance) error
 		GetLastProcessedLuckySixID(ctx context.Context) (uint, error)
+		GetWalletsForBalanceCheck(ctx context.Context, limit int) ([]entity.WalletBalance, error)
+		UpdateBalances(ctx context.Context, balances []entity.WalletBalance) error
 	}
 )

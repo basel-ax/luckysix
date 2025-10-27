@@ -71,3 +71,65 @@ func (r *WalletBalanceRepo) GetLastProcessedLuckySixID(ctx context.Context) (uin
 
 	return *lastID, nil
 }
+
+// GetWalletsForBalanceCheck fetches wallets that have a zero balance or have never been checked.
+func (r *WalletBalanceRepo) GetWalletsForBalanceCheck(ctx context.Context, limit int) ([]entity.WalletBalance, error) {
+	sql, args, err := r.Builder.
+		Select("id", "address").
+		From("wallet_balances").
+		Where("balance = '0' OR balance IS NULL").
+		OrderBy("id ASC").
+		Limit(uint64(limit)).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("WalletBalanceRepo - GetWalletsForBalanceCheck - r.Builder: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, fmt.Errorf("WalletBalanceRepo - GetWalletsForBalanceCheck - r.Pool.Query: %w", err)
+	}
+	defer rows.Close()
+
+	var results []entity.WalletBalance
+	for rows.Next() {
+		var wb entity.WalletBalance
+		if err := rows.Scan(&wb.ID, &wb.Address); err != nil {
+			return nil, fmt.Errorf("WalletBalanceRepo - GetWalletsForBalanceCheck - rows.Scan: %w", err)
+		}
+		results = append(results, wb)
+	}
+
+	return results, nil
+}
+
+// UpdateBalances performs a batch update of wallet balances.
+func (r *WalletBalanceRepo) UpdateBalances(ctx context.Context, balances []entity.WalletBalance) error {
+	if len(balances) == 0 {
+		return nil
+	}
+
+	// Using a transaction for batch update
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("WalletBalanceRepo - UpdateBalances - r.Pool.Begin: %w", err)
+	}
+	defer tx.Rollback(ctx) // Rollback is a no-op if the tx has been committed.
+
+	for _, wb := range balances {
+		sql, args, err := r.Builder.
+			Update("wallet_balances").
+			Set("balance", wb.Balance).
+			Set("balance_updated_at", wb.BalanceUpdatedAt).
+			Where("id = ?", wb.ID).
+			ToSql()
+		if err != nil {
+			return fmt.Errorf("WalletBalanceRepo - UpdateBalances - r.Builder: %w", err)
+		}
+		if _, err := tx.Exec(ctx, sql, args...); err != nil {
+			return fmt.Errorf("WalletBalanceRepo - UpdateBalances - tx.Exec: %w", err)
+		}
+	}
+
+	return tx.Commit(ctx)
+}

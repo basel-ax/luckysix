@@ -9,6 +9,7 @@ require (
 	github.com/alexvec/go-bip39 v1.1.0
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/gin-gonic/gin v1.11.0
+	github.com/miguelmota/go-ethereum-hdwallet v0.1.3
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0

@@ -18,6 +18,7 @@ type (
 		Mongo `yaml:"mongo"`
 		PARAM `yaml:"param"`
 		AI    `yaml:"ai"`
+		Blockchain `yaml:"blockchain"`
 	}
 
 	// App -.
@@ -74,6 +75,14 @@ type (
 		LocalAIURL        string `env-required:"false" yaml:"localai_url" env:"LOCALAI_URL"`
 		FusionbrainApi    string `env-required:"false" yaml:"fusionbrain_api" env:"FUSIONBRAIN_API"`
 		FusionbrainSecret string `env-required:"false" yaml:"fusionbrain_secret" env:"FUSIONBRAIN_SECRET"`
+	}
+
+	// Blockchain -.
+	Blockchain struct {
+		EthMainnetRPC string `env-required:"false" yaml:"eth_mainnet_rpc" env:"ETH_MAINNET_RPC"`
+		ArbitrumRPC   string `env-required:"false" yaml:"arbitrum_rpc" env:"ARBITRUM_RPC"`
+		BaseRPC       string `env-required:"false" yaml:"base_rpc" env:"BASE_RPC"`
+		BnbRPC        string `env-required:"false" yaml:"bnb_rpc" env:"BNB_RPC"`
 	}
 )
 
