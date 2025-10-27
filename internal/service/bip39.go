@@ -23,14 +23,16 @@ const (
 type Bip39Service struct {
 	luckyTwoRepo  LuckyTwoRepo
 	luckyFiveRepo LuckyFiveRepo
+	luckySixRepo  LuckySixRepo
 	logger        logger.Interface
 }
 
 // NewBip39Service -.
-func NewBip39Service(luckyTwoRepo LuckyTwoRepo, luckyFiveRepo LuckyFiveRepo, l logger.Interface) *Bip39Service {
+func NewBip39Service(luckyTwoRepo LuckyTwoRepo, luckyFiveRepo LuckyFiveRepo, luckySixRepo LuckySixRepo, l logger.Interface) *Bip39Service {
 	return &Bip39Service{
 		luckyTwoRepo:  luckyTwoRepo,
 		luckyFiveRepo: luckyFiveRepo,
+		luckySixRepo:  luckySixRepo,
 		logger:        l,
 	}
 }
@@ -182,5 +184,90 @@ func (s *Bip39Service) GenerateAndStoreLuckyFiveCombinations(ctx context.Context
 	}
 
 	s.logger.Info("Finished generation of LuckyFive combinations")
+	return nil
+}
+
+// GenerateAndStoreLuckySixCombinations generates and stores a specified number of random LuckySix combinations.
+func (s *Bip39Service) GenerateAndStoreLuckySixCombinations(ctx context.Context, count int) error {
+	s.logger.Info("Starting generation of LuckySix combinations", "count", count)
+
+	totalLuckyTwo, err := s.luckyTwoRepo.Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get count of LuckyTwo pairs: %w", err)
+	}
+	totalLuckyFive, err := s.luckyFiveRepo.Count(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get count of LuckyFive combinations: %w", err)
+	}
+
+	if totalLuckyTwo == 0 || totalLuckyFive == 0 {
+		return fmt.Errorf("not enough LuckyTwo (%d) or LuckyFive (%d) to generate LuckySix", totalLuckyTwo, totalLuckyFive)
+	}
+
+	poolSize := runtime.NumCPU()
+	group := parallelizer.NewGroup(parallelizer.WithPoolSize(poolSize))
+	defer group.Close()
+
+	workPerWorker := count / poolSize
+	extraWork := count % poolSize
+
+	for i := 0; i < poolSize; i++ {
+		workerNum := i
+		jobs := workPerWorker
+		if workerNum < extraWork {
+			jobs++
+		}
+		if jobs == 0 {
+			continue
+		}
+
+		err := group.Add(func() error {
+			source := rand.NewSource(time.Now().UnixNano() + int64(workerNum))
+			random := rand.New(source)
+			batch := make([]entity.LuckySix, 0, batchSize)
+
+			for j := 0; j < jobs; j++ {
+				randomTwoID := uint(random.Int63n(totalLuckyTwo) + 1)
+				randomFiveID := uint(random.Int63n(totalLuckyFive) + 1)
+
+				luckySix := entity.LuckySix{
+					LuckyFiveID: randomFiveID,
+					LuckyTwoID:  randomTwoID,
+					Model: gorm.Model{
+						CreatedAt: time.Now(),
+						UpdatedAt: time.Now(),
+					},
+				}
+				batch = append(batch, luckySix)
+
+				if len(batch) >= batchSize {
+					if err := s.luckySixRepo.StoreBatch(ctx, batch); err != nil {
+						s.logger.Error(fmt.Errorf("worker %d failed to store LuckySix batch: %w", workerNum, err))
+						return err
+					}
+					batch = make([]entity.LuckySix, 0, batchSize)
+				}
+			}
+
+			if len(batch) > 0 {
+				if err := s.luckySixRepo.StoreBatch(ctx, batch); err != nil {
+					s.logger.Error(fmt.Errorf("worker %d failed to store final LuckySix batch: %w", workerNum, err))
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			s.logger.Error(fmt.Errorf("failed to add LuckySix task to parallelizer group for worker %d: %w", workerNum, err))
+		}
+	}
+
+	if err := group.Wait(); err != nil {
+		err = fmt.Errorf("error during LuckySix combination generation: %w", err)
+		s.logger.Error(err)
+		return err
+	}
+
+	s.logger.Info("Finished generation of LuckySix combinations")
 	return nil
 }

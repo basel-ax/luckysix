@@ -43,3 +43,22 @@ func (r *LuckyFiveRepo) StoreBatch(ctx context.Context, luckyFives []entity.Luck
 
 	return nil
 }
+
+// Count returns the total number of records in the luckyfives table.
+func (r *LuckyFiveRepo) Count(ctx context.Context) (int64, error) {
+	sql, _, err := r.Builder.
+		Select("COUNT(*)").
+		From("luckyfives").
+		ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("LuckyFiveRepo - Count - r.Builder: %w", err)
+	}
+
+	var count int64
+	err = r.Pool.QueryRow(ctx, sql).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("LuckyFiveRepo - Count - r.Pool.QueryRow: %w", err)
+	}
+
+	return count, nil
+}

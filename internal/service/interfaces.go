@@ -40,6 +40,7 @@ type (
 	Bip39 interface {
 		GenerateAndStoreLuckyTwoCombinations(context.Context) error
 		GenerateAndStoreLuckyFiveCombinations(ctx context.Context, count int) error
+		GenerateAndStoreLuckySixCombinations(ctx context.Context, count int) error
 	}
 
 	// LuckyTwoRepo -.
@@ -51,5 +52,11 @@ type (
 	// LuckyFiveRepo -.
 	LuckyFiveRepo interface {
 		StoreBatch(ctx context.Context, luckyFives []entity.Luckyfive) error
+		Count(ctx context.Context) (int64, error)
+	}
+
+	// LuckySixRepo -.
+	LuckySixRepo interface {
+		StoreBatch(ctx context.Context, luckySixes []entity.LuckySix) error
 	}
 )
