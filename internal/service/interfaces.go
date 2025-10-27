@@ -35,4 +35,14 @@ type (
 	// PoolRepo -.
 	PoolRepo interface {
 	}
+
+	// Bip39 -.
+	Bip39 interface {
+		GenerateAndStoreLuckyTwoCombinations(context.Context) error
+	}
+
+	// LuckyTwoRepo -.
+	LuckyTwoRepo interface {
+		StoreBatch(context.Context, []entity.Luckytwo) error
+	}
 )

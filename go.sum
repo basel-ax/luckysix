@@ -26,6 +26,8 @@ github.com/VictoriaMetrics/fastcache v1.13.0 h1:AW4mheMR5Vd9FkAPUv+NH6Nhw+fmbTMG
 github.com/VictoriaMetrics/fastcache v1.13.0/go.mod h1:hHXhl4DA2fTL2HTZDJFXWgW0LNjo6B+4aj2Wmng3TjU=
 github.com/aaw/maybe_tls v0.0.0-20160803104303-89c499bcc6aa h1:6yJyU8MlPBB2enGJdPciPlr8P+PC0nhCFHnSHYMirZI=
 github.com/aaw/maybe_tls v0.0.0-20160803104303-89c499bcc6aa/go.mod h1:I0wzMZvViQzmJjxK+AtfFAnqDCkQV/+r17PO1CCSYnU=
+github.com/alexvec/go-bip39 v1.0.1 h1:1584c6eAmlLwY2aPohfNl9PLgXStyE5K/eGz8P3a2U8=
+github.com/alexvec/go-bip39 v1.0.1/go.mod h1:1p/k3W+8O+Yg+iJge7f920Yn+t3t2qAOYV5r06lVqO0=
 github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195/go.mod h1:SLqhdZcd+dF3TEVL2RMoob5bBP5R1P1qkox+HtCBgGI=
 github.com/araddon/dateparse v0.0.0-20200409225146-d820a6159ab1 h1:TEBmxO80TM04L8IuMWk77SGL1HomBmKTdzdJLLWznxI=
 github.com/araddon/dateparse v0.0.0-20200409225146-d820a6159ab1/go.mod h1:SLqhdZcd+dF3TEVL2RMoob5bBP5R1P1qkox+HtCBgGI=
@@ -397,6 +399,8 @@ github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
 github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
 github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
+github.com/shomali11/parallelizer v0.1.2 h1:rGblL94h7dCg0V5z8tFw4D0G5B1s1w8tD/z45fI0nAs=
+github.com/shomali11/parallelizer v0.1.2/go.mod h1:sB1iV9/FaaauUqq5v40Uu1G5sW8W5f6eLq4Tq4dE6/g=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
 github.com/shopspring/decimal v1.2.0/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp81k=

@@ -15,12 +15,14 @@ import (
 )
 
 type TasksService struct {
-	log *log.Logger
+	log   *log.Logger
+	bip39 Bip39
 }
 
-func NewTasksService(l *log.Logger) *TasksService {
+func NewTasksService(l *log.Logger, bip39 Bip39) *TasksService {
 	return &TasksService{
-		log: l,
+		log:   l,
+		bip39: bip39,
 	}
 }
 
@@ -138,4 +140,17 @@ func (service *TasksService) CheckRabbitTask() string {
 	service.log.Mongo(ctx, tmsp, msg)
 
 	return msg
+}
+
+// GenerateLuckyTwo starts the generation of Luckytwo combinations in the background.
+func (service *TasksService) GenerateLuckyTwo() {
+	service.log.Info("Task started: GenerateLuckyTwo")
+	go func() {
+		err := service.bip39.GenerateAndStoreLuckyTwoCombinations(context.Background())
+		if err != nil {
+			service.log.Error(fmt.Errorf("GenerateLuckyTwo task failed: %w", err))
+		} else {
+			service.log.Info("Task finished successfully: GenerateLuckyTwo")
+		}
+	}()
 }

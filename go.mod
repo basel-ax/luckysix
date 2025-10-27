@@ -25,6 +25,8 @@ require (
 	go.mongodb.org/mongo-driver v1.17.4
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.0
+	github.com/alexvec/go-bip39 v1.0.1
+	github.com/shomali11/parallelizer v0.1.2
 )
 
 require (
