@@ -74,7 +74,9 @@ func (service *TasksService) CheckRabbit(cfg *config.Config, ctx context.Context
 			service.log.Fatal("RabbitMQ RPC Client - shutdown error - rmqClient.RemoteCall", err)
 		}
 	}()
-	var answer string
+	var answer struct {
+		Message string `json:"message"`
+	}
 
 	//TODO: fix
 	/*
@@ -85,8 +87,8 @@ func (service *TasksService) CheckRabbit(cfg *config.Config, ctx context.Context
 		service.log.Fatal("RabbitMQ RPC Client - remote call error - rmqClient.RemoteCall(checkRabbit)", err)
 	}
 
-	if len(answer) > 0 {
-		service.log.Info(answer)
+	if len(answer.Message) > 0 {
+		service.log.Info(answer.Message)
 	} else {
 		service.log.Fatal("CheckRabbit answer is empty")
 	}
