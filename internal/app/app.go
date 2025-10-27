@@ -18,47 +18,80 @@ import (
 
 // Run creates objects via constructors.
 func Run(cfg *config.Config) {
-	log := logger.New(context.Background(), cfg.Log.Level, cfg.PARAM.TgBotApi, cfg.PARAM.TgChatId, cfg.Mongo.URI, cfg.Mongo.DB)
+	// Logger
+	l := logger.New(context.Background(), cfg.Log.Level, cfg.PARAM.TgBotApi, cfg.PARAM.TgChatId, "", "")
 
-	// Repository
+	// Repositories
 	pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
+		l.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
 	}
 	defer pg.Close()
 
-	// RabbitMQ RPC Server
-	/*
-		translationService := service.NewTranslationService(
-			repo.NewTranslationRepo(pg),
-			webapi.New(),
-		)
+	translationRepo := repo.NewTranslationRepo(pg)
+	luckyTwoRepo := repo.NewLuckyTwoRepo(pg)
+	luckyFiveRepo := repo.NewLuckyFiveRepo(pg)
+	luckySixRepo := repo.NewLuckySixRepo(pg)
+	walletBalanceRepo := repo.NewWalletBalanceRepo(pg)
 
-		rmqRouter := amqprpc.NewTranslationRouter(translationService)
-
-		rmqServer, err := server.New(cfg.RMQ.URL, cfg.RMQ.ServerExchange, rmqRouter, log)
-		if err != nil {
-			log.Fatal(fmt.Errorf("app - Run - rmqServer - server.New: %w", err))
-		}
-	*/
-
-	tasksService := service.NewTasksService(log)
-
-	rmqRouter := amqprpc.NewTasksRouter(tasksService)
-
-	rmqServer, err := server.New(cfg.RMQ.URL, cfg.RMQ.ServerExchange, rmqRouter, log)
+	// Services
+	telegramService, err := service.NewTelegramService(cfg)
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - rmqServer - server.New: %w", err))
+		l.Fatal(fmt.Errorf("app - Run - service.NewTelegramService: %w", err))
+	}
+
+	translationService := service.NewTranslationService(
+		translationRepo,
+		webapi.New(),
+	)
+
+	bip39Service := service.NewBip39Service(
+		luckyTwoRepo,
+		luckyFiveRepo,
+		luckySixRepo,
+		l,
+	)
+
+	blockchainService := service.NewBlockchainService(
+		luckyTwoRepo,
+		luckyFiveRepo,
+		luckySixRepo,
+		walletBalanceRepo,
+		telegramService,
+		l,
+		cfg,
+	)
+
+	// This is the fix for the compiler error: NewTasksService now receives all its dependencies.
+	tasksService := service.NewTasksService(l, bip39Service, blockchainService)
+
+	// Service container
+	services := &service.Services{
+		Translation: translationService,
+		Tasks:       tasksService,
+		Bip39:       bip39Service,
+		Blockchain:  blockchainService,
+		Telegram:    telegramService,
+	}
+
+	// AMQP RPC Server
+	rmqRouter := amqprpc.NewRouter(services)
+	rmqServer, err := server.New(
+		cfg.RMQ.URL,
+		cfg.RMQ.ServerExchange,
+		rmqRouter,
+		l,
+	)
+	if err != nil {
+		l.Fatal(fmt.Errorf("app - Run - rmqServer - server.New: %w", err))
 	}
 
 	// HTTP Server
-	/*
-		handler := gin.New()
-		v1.NewRouter(handler, l, translationService)
-		httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
-	*/
+	handler := gin.New()
+	v1.NewRouter(handler, l, services)
+	httpServer := httpserver.New(handler, httpserver.Port(cfg.HTTP.Port))
 
-	// Tasks
+	// Start background tasks
 	tasksService.StartTasks(cfg)
 
 	// Waiting signal
@@ -67,26 +100,21 @@ func Run(cfg *config.Config) {
 
 	select {
 	case s := <-interrupt:
-		log.Info("app - Run - signal: " + s.String())
-	/*
-		case err = <-httpServer.Notify():
-			l.Error(fmt.Errorf("app - Run - httpServer.Notify: %w", err))
-	*/
+		l.Info("app - Run - signal: " + s.String())
+	case err = <-httpServer.Notify():
+		l.Error(fmt.Errorf("app - Run - httpServer.Notify: %w", err))
 	case err = <-rmqServer.Notify():
-		log.Error(fmt.Errorf("app - Run - rmqServer.Notify: %w", err))
+		l.Error(fmt.Errorf("app - Run - rmqServer.Notify: %w", err))
 	}
 
 	// Shutdown
-	/*
-		err = httpServer.Shutdown()
-		if err != nil {
-			l.Error(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
-		}
-	*/
+	err = httpServer.Shutdown()
+	if err != nil {
+		l.Error(fmt.Errorf("app - Run - httpServer.Shutdown: %w", err))
+	}
 
 	err = rmqServer.Shutdown()
 	if err != nil {
-		log.Error(fmt.Errorf("app - Run - rmqServer.Shutdown: %w", err))
+		l.Error(fmt.Errorf("app - Run - rmqServer.Shutdown: %w", err))
 	}
-
 }
