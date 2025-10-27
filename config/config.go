@@ -83,6 +83,7 @@ type (
 		ArbitrumRPC   string `env-required:"false" yaml:"arbitrum_rpc" env:"ARBITRUM_RPC"`
 		BaseRPC       string `env-required:"false" yaml:"base_rpc" env:"BASE_RPC"`
 		BnbRPC        string `env-required:"false" yaml:"bnb_rpc" env:"BNB_RPC"`
+		CosmosRPC     string `env-required:"false" yaml:"cosmos_rpc" env:"COSMOS_RPC"`
 	}
 )
 

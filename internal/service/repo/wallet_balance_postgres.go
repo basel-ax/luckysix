@@ -26,11 +26,11 @@ func (r *WalletBalanceRepo) StoreBatch(ctx context.Context, balances []entity.Wa
 		return nil
 	}
 
-	columns := []string{"lucky_six_id", "mnemonic", "address", "balance", "created_at", "updated_at"}
+	columns := []string{"lucky_six_id", "mnemonic", "address", "cosmos_address", "balance", "created_at", "updated_at"}
 	builder := r.Builder.Insert("wallet_balances").Columns(columns...)
 
 	for _, wb := range balances {
-		builder = builder.Values(wb.LuckySixID, wb.Mnemonic, wb.Address, wb.Balance, wb.CreatedAt, wb.UpdatedAt)
+		builder = builder.Values(wb.LuckySixID, wb.Mnemonic, wb.Address, wb.CosmosAddress, wb.Balance, wb.CreatedAt, wb.UpdatedAt)
 	}
 
 	sql, args, err := builder.ToSql()
@@ -75,7 +75,7 @@ func (r *WalletBalanceRepo) GetLastProcessedLuckySixID(ctx context.Context) (uin
 // GetWalletsForBalanceCheck fetches wallets that have a zero balance or have never been checked.
 func (r *WalletBalanceRepo) GetWalletsForBalanceCheck(ctx context.Context, limit int) ([]entity.WalletBalance, error) {
 	sql, args, err := r.Builder.
-		Select("id", "address").
+		Select("id", "address", "cosmos_address").
 		From("wallet_balances").
 		Where("balance = '0' OR balance IS NULL").
 		OrderBy("id ASC").
@@ -94,7 +94,7 @@ func (r *WalletBalanceRepo) GetWalletsForBalanceCheck(ctx context.Context, limit
 	var results []entity.WalletBalance
 	for rows.Next() {
 		var wb entity.WalletBalance
-		if err := rows.Scan(&wb.ID, &wb.Address); err != nil {
+		if err := rows.Scan(&wb.ID, &wb.Address, &wb.CosmosAddress); err != nil {
 			return nil, fmt.Errorf("WalletBalanceRepo - GetWalletsForBalanceCheck - rows.Scan: %w", err)
 		}
 		results = append(results, wb)

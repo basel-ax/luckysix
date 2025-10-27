@@ -7,6 +7,7 @@ require (
 	github.com/Eun/go-hit v0.5.23
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/alexvec/go-bip39 v1.1.0
+	github.com/cosmos/cosmos-sdk v0.47.13
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/gin-gonic/gin v1.11.0
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.3
