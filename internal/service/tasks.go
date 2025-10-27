@@ -8,7 +8,6 @@ import (
 
 	"github.com/basel-ax/luckysix/config"
 	"github.com/jasonlvhit/gocron"
-	"github.com/redis/go-redis/v9"
 
 	log "github.com/basel-ax/luckysix/pkg/logger"
 	"github.com/basel-ax/luckysix/pkg/rabbitmq/rmq_rpc/client"
@@ -52,14 +51,6 @@ func (service *TasksService) EveryDayTask(cfg *config.Config) {
 func (service *TasksService) EveryMinuteTask(cfg *config.Config) {
 	service.log.Info("Start EveryMinuteTasks")
 
-	ctx := context.Background()
-	tmsp := time.Now().UnixMicro()
-
-	msg := fmt.Sprintf("Start EveryMinuteTasks, time = %s", time.Now())
-	service.log.Mongo(ctx, tmsp, msg)
-
-	msg = fmt.Sprintf("End EveryMinuteTasks, check difference between TsUid, time = %s", time.Now())
-	service.log.Mongo(ctx, tmsp, msg)
 	service.log.Info("End everyMinuteTasks")
 }
 
@@ -101,43 +92,10 @@ func (service *TasksService) CheckRabbit(cfg *config.Config, ctx context.Context
 	}
 }
 
-func (service *TasksService) CheckRedis(cfg *config.Config, ctx context.Context) {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     cfg.Redis.Addr,
-		Password: "",
-		DB:       0,
-	})
-
-	err := rdb.Set(ctx, "key", "value", 0).Err()
-	if err != nil {
-		service.log.Fatal(err)
-	}
-
-	val, err := rdb.Get(ctx, "key").Result()
-	if err != nil {
-		service.log.Fatal(err)
-	}
-	service.log.Info("key: %s", val)
-
-	val2, err := rdb.Get(ctx, "key2").Result()
-	if err == redis.Nil {
-		service.log.Info("key2 does not exist")
-	} else if err != nil {
-		service.log.Fatal(err)
-	} else {
-		service.log.Info("key2 %ss", val2)
-	}
-	// Output: key value
-	// key2 does not exist
-}
 
 // Task execute in RabbitMQ controller
 func (service *TasksService) CheckRabbitTask() string {
 	msg := fmt.Sprintf("CheckRabbitTask, time = %s", time.Now())
-	ctx := context.Background()
-	//tmsp нужно вытаскивать или из Redis или из DB, для теста и так сойдет
-	tmsp := time.Now().UnixMicro()
-	service.log.Mongo(ctx, tmsp, msg)
 
 	return msg
 }
