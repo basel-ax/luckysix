@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/alexvec/go-bip39"
-	"github.com/shomali11/parallelizer"
 	"gorm.io/gorm"
 
 	"github.com/basel-ax/luckysix/internal/entity"
