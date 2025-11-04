@@ -1,0 +1,13 @@
+app:
+  name: "luckysix"
+  version: "1.0.0"
+
+logger:
+  log_level: "debug"
+
+postgres:
+  max_pool_size: 10
+  url: "postgres://user:password@localhost:5432/luckysix"
+
+http:
+  port: "8080"

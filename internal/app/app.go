@@ -1,12 +1,15 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"github.com//basel-ax/luckysix/internal/config"
-	"github.com//basel-ax/luckysix/pkg/db"
-	"github.com//basel-ax/luckysix/pkg/logger"
+	"github.com/basel-ax/luckysix/internal/config"
+	"github.com/basel-ax/luckysix/internal/repository"
+	"github.com/basel-ax/luckysix/internal/service"
+	"github.com/basel-ax/luckysix/pkg/db"
+	"github.com/basel-ax/luckysix/pkg/logger"
 )
 
 type App struct {
@@ -26,18 +29,33 @@ func (a *App) Run() error {
 	l := logger.New(a.cfg.Log.Level)
 
 	// Repository
-	pg, err := db.New(a.cfg.PG.URL, db.MaxPoolSize(a.cfg.PG.MaxPoolSize))
+	pg, err := db.New(a.cfg.PG.URL)
 	if err != nil {
 		return fmt.Errorf("app - Run - db.New: %w", err)
 	}
-	defer pg.Close()
+
+	blockchainRepo := repository.NewBlockchainRepo(pg)
+	luckyTwoRepo := repository.NewLuckyTwoRepo(pg)
+	luckyFiveRepo := repository.NewLuckyFiveRepo(pg)
+	luckySixRepo := repository.NewLuckySixRepo(pg)
+	walletBalanceRepo := repository.NewWalletBalanceRepo(pg)
 
 	// Use cases
-	// Your services here...
+	walletService := service.NewWalletService(luckyTwoRepo, luckyFiveRepo)
+	notificationService := service.NewLogNotifier()
+	luckySixService := service.NewLuckySixService(
+		blockchainRepo,
+		luckyTwoRepo,
+		luckyFiveRepo,
+		luckySixRepo,
+		walletBalanceRepo,
+		walletService,
+		notificationService,
+	)
 
 	// Run
-	// Your services startup here...
 	l.Info("app - Run - Application started")
+	go luckySixService.GenerateAndProcess(context.Background())
 
 	// Shutdown
 	// Your graceful shutdown logic here...
