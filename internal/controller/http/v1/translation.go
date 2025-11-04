@@ -12,10 +12,10 @@ import (
 
 type translationRoutes struct {
 	t service.Translation
-	l logger.Interface
+	l *logger.Logger
 }
 
-func newTranslationRoutes(handler *gin.RouterGroup, t service.Translation, l logger.Interface) {
+func newTranslationRoutes(handler *gin.RouterGroup, t service.Translation, l *logger.Logger) {
 	r := &translationRoutes{t, l}
 
 	h := handler.Group("/translation")
@@ -41,7 +41,8 @@ type historyResponse struct {
 func (r *translationRoutes) history(c *gin.Context) {
 	translations, err := r.t.History(c.Request.Context())
 	if err != nil {
-		r.l.Error(err, "http - v1 - history")
+
+		r.l.Error(err)
 		errorResponse(c, http.StatusInternalServerError, "database problems")
 
 		return
@@ -70,7 +71,8 @@ type doTranslateRequest struct {
 func (r *translationRoutes) doTranslate(c *gin.Context) {
 	var request doTranslateRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		r.l.Error(err, "http - v1 - doTranslate")
+
+		r.l.Error(err)
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 
 		return
@@ -85,7 +87,8 @@ func (r *translationRoutes) doTranslate(c *gin.Context) {
 		},
 	)
 	if err != nil {
-		r.l.Error(err, "http - v1 - doTranslate")
+
+		r.l.Error(err)
 		errorResponse(c, http.StatusInternalServerError, "translation service problems")
 
 		return

@@ -10,10 +10,15 @@ import (
 
 	"github.com/basel-ax/luckysix/config"
 	amqprpc "github.com/basel-ax/luckysix/internal/controller/amqp_rpc"
+	"github.com/basel-ax/luckysix/internal/controller/http/v1"
 	"github.com/basel-ax/luckysix/internal/service"
+	"github.com/basel-ax/luckysix/internal/service/repo"
+	"github.com/basel-ax/luckysix/internal/service/webapi"
+	"github.com/basel-ax/luckysix/pkg/httpserver"
 	"github.com/basel-ax/luckysix/pkg/logger"
 	"github.com/basel-ax/luckysix/pkg/postgres"
 	"github.com/basel-ax/luckysix/pkg/rabbitmq/rmq_rpc/server"
+	"github.com/gin-gonic/gin"
 )
 
 // Run creates objects via constructors.
