@@ -134,7 +134,7 @@ func (s *BlockchainService) buildMnemonic(ctx context.Context, ls entity.LuckySi
 	}
 
 	var words []string
-	wordList := bip39.WordList
+	wordList := bip39.GetWordList()
 	for _, id := range luckyTwoIDs {
 		lt, ok := luckyTwoMap[id]
 		if !ok {

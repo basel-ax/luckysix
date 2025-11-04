@@ -78,9 +78,6 @@ func (r *LuckyFiveRepo) GetByID(ctx context.Context, id uint) (entity.LuckyFive,
 	var lf entity.LuckyFive
 	err = r.Pool.QueryRow(ctx, sql, args...).Scan(&lf.ID, &lf.PairOne, &lf.PairTwo, &lf.PairThree, &lf.PairFour, &lf.PairFive)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return entity.LuckyFive{}, fmt.Errorf("LuckyFiveRepo - GetByID - not found for id %d", id)
-		}
 		return entity.LuckyFive{}, fmt.Errorf("LuckyFiveRepo - GetByID - r.Pool.QueryRow: %w", err)
 	}
 

@@ -39,7 +39,7 @@ func NewBip39Service(luckyTwoRepo LuckyTwoRepo, luckyFiveRepo LuckyFiveRepo, luc
 func (s *Bip39Service) GenerateAndStoreLuckyTwoCombinations(ctx context.Context) error {
 	s.logger.Info("Starting generation of LuckyTwo combinations")
 
-	wordListSize := len(bip39.WordList)
+	wordListSize := len(bip39.GetWordList())
 
 	batch := make([]entity.Luckytwo, 0, batchSize)
 
