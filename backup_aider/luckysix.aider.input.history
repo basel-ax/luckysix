@@ -1,0 +1,143 @@
+
+# 2025-10-27 16:36:33.130464
++We have old library in project - update itgo: module github.com/streadway/amqp is deprecated: Consider using the github.com/rabbitmq/amqp091-go package instead.
+
+# 2025-10-27 16:37:18.030167
++A
+
+# 2025-10-27 16:55:22.517632
++this project is unready. Use https://github.com/alexvec/go-bip39 and create service that creates all combinations of 2 numbers from that can be in bid39 and save it too posgre db , use model Luckytwo from Gorm. Later we use this service in tasks.go. Make a function in  tasks.go that we can start fuction with creating Luckytwo in new service in parallel, use https://github.com/shomali11/parallelizer
+
+# 2025-10-27 16:55:28.412178
++y
+
+# 2025-10-27 16:55:36.419357
++yes
+
+# 2025-10-27 16:58:37.277202
++A
+
+# 2025-10-27 17:01:54.298255
++D
+
+# 2025-10-27 17:01:59.400435
++Y
+
+# 2025-10-27 17:04:07.425990
++now we use only posgre db. remove usable of other datasources like MYSQL, MongoDb from tasks.go
+
+# 2025-10-27 17:06:48.979907
++Create a new function in service - create new LuckyFive from 5-pairs LuckyTwo by random, without repeat. Function must work in parallel. And can continue from last generated  LuckyFive from DB. 
+
+# 2025-10-27 17:10:49.612061
++A
+
+# 2025-10-27 17:13:36.313480
++Y
+
+# 2025-10-27 17:14:22.764494
++Create a new function in service - create new LuckyFive from LuckyTwo as 6 part and LuckyFive by random, without repeat. Function must work in parallel. And can continue from last generated  LuckyFive from DB. 
+
+# 2025-10-27 17:17:27.054169
++A
+
+# 2025-10-27 17:19:39.930869
++Y
+
+# 2025-10-27 17:31:17.345958
++remove using a github.com/shomali11/parallelizer made code simple, without parallel function executions
+
+# 2025-10-27 17:32:04.423368
++Y
+
+# 2025-10-27 17:36:04.106266
++remove using a github.com/shomali11/parallelizer made code simple, without parallel function executions
+
+# 2025-10-27 17:36:19.841806
++remove using a parallelizer - made code simple, without parallel function executions
+
+# 2025-10-27 17:37:25.233331
++D
+
+# 2025-10-27 17:41:43.338763
++Create a new function in BlockchainService. Get wallet 12 words string by LuckySix & bip39, save in new entity WalletBalance, create new field. Function can continue from last used LuckySix (based on last from WalletBalance) from DB.  
+
+# 2025-10-27 17:44:14.357522
++D
+
+# 2025-10-27 17:44:19.192473
++A
+
+# 2025-10-27 17:46:26.415818
++Y
+
+# 2025-10-27 17:47:14.136743
++Create a new function in BlockchainService. Get wallet address by 12 words in WalletBalance in ethereum mainnet blockchain.  Check wallet balance in various L2 ethereum blockchains (arbitrum, base, bnb chain). use public blockchain explorers
+
+# 2025-10-27 17:48:13.575298
++A
+
+# 2025-10-27 17:51:56.049738
++generate required code changes
+
+# 2025-10-27 17:54:56.004623
++Y
+
+# 2025-10-27 17:56:10.083531
++Create a new function in BlockchainService. Get wallet address by 12 words in WalletBalance in Cosmos blockchain.  Check wallet balance in Cosmos blockchain. use public blockchain explorer
+
+# 2025-10-27 17:58:44.655954
++Create a new function in BlockchainService. If wallet balance > 0 in any blockchain - send link to telegram chat https://debank.com/profile/{walletAddress}. use go-telegram-bot-api. Info about telegram bot and chat save in env, vars - TELEGRAM_APP_BOT_TOKEN & create was needed
+
+# 2025-10-27 17:58:50.837505
++n
+
+# 2025-10-27 18:01:52.154300
++add files internal/entity/wallet_balance.go   and internal/service/blockchain.go and  proceed with all the changes you've requested.
+
+# 2025-10-27 18:04:00.661886
++/add internal/entity/wallet_balance.go  
+
+# 2025-10-27 18:04:10.431479
++add internal/service/blockchain.go
+
+# 2025-10-27 18:04:16.477983
++/add internal/service/blockchain.go
+
+# 2025-10-27 18:04:40.481227
++i add files, proceed request
+
+# 2025-10-27 18:09:07.825355
++Н
+
+# 2025-10-27 18:09:09.858079
++Y
+
+# 2025-10-27 18:09:36.081531
++Update README. Add information about all created services. And how to start main tasks. 
+
+# 2025-10-27 18:10:41.827463
++D
+
+# 2025-10-27 18:12:28.933098
++Y
+
+# 2025-10-27 18:15:09.396717
++fix not enough arguments in call to service.NewTasksService
++	have (*"github.com/basel-ax/luckysix/pkg/logger".Logger)
++	want (*"github.com/basel-ax/luckysix/pkg/logger".Logger, service.Bip39, unknown type)
+
+# 2025-10-27 18:17:10.302770
++/add internal/app/app.go
+
+# 2025-10-27 18:17:20.398092
++i add files, proceed request
+
+# 2025-10-27 18:18:06.342107
++Y
+
+# 2025-11-04 09:07:51.990255
++fix errors is app.go
+
+# 2025-11-04 09:07:54.668053
++D
