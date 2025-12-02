@@ -121,7 +121,7 @@ func GenerateAndSaveLuckySix(db *gorm.DB) error {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= insertBatchSize {
-						if err := db.CreateInBatches(luckySixBatch, insertBatchSize).Error; err != nil {
+						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 							return err
 						}
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
@@ -145,7 +145,7 @@ func GenerateAndSaveLuckySix(db *gorm.DB) error {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= insertBatchSize {
-						if err := db.CreateInBatches(luckySixBatch, insertBatchSize).Error; err != nil {
+						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 							return err
 						}
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
@@ -161,7 +161,7 @@ func GenerateAndSaveLuckySix(db *gorm.DB) error {
 
 		// Insert any remaining records in the batch
 		if len(luckySixBatch) > 0 {
-			if err := db.CreateInBatches(luckySixBatch, insertBatchSize).Error; err != nil {
+			if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 				return err
 			}
 		}
@@ -171,5 +171,34 @@ func GenerateAndSaveLuckySix(db *gorm.DB) error {
 	}
 
 	log.Println("All LuckySix combinations generated and saved")
+	return nil
+}
+
+// insertLuckySixBatch inserts a batch of LuckySix records, skipping duplicates
+func insertLuckySixBatch(db *gorm.DB, batch []entity.LuckySix) error {
+	if len(batch) == 0 {
+		return nil
+	}
+
+	// Use individual inserts with ON CONFLICT DO NOTHING to handle duplicates
+	// This is more reliable than CreateInBatches for handling unique constraint violations
+	for _, ls := range batch {
+		// Check if this combination already exists
+		var count int64
+		err := db.Model(&entity.LuckySix{}).
+			Where("word_one = ? AND word_two = ? AND word_three = ? AND word_four = ? AND word_five = ? AND word_six = ?",
+				ls.WordOne, ls.WordTwo, ls.WordThree, ls.WordFour, ls.WordFive, ls.WordSix).
+			Count(&count).Error
+		if err != nil {
+			return err
+		}
+
+		// Only insert if it doesn't exist
+		if count == 0 {
+			if err := db.Create(&ls).Error; err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

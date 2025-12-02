@@ -5,6 +5,7 @@ LuckySix is a comprehensive Go application designed to systematically generate, 
 ## Features
 
 - Combinatorial generation of BIP39 word combinations (LuckyTwo, LuckyFive, LuckySix).
+- Generation of 12-word BIP39 wallet mnemonics from LuckySix combinations.
 - Resumable generation from the last saved combination.
 - PostgreSQL database storage using GORM.
 
@@ -115,6 +116,17 @@ This command will:
   - `word_one`, `word_two`, `word_three`, `word_four`, `word_five`, `word_six`: Indices (0-2047)
   - `created_at`, `updated_at`: Timestamps
 
+- **wallet_balances** table:
+  - `id`: Primary key
+  - `lucky_six_id`: Foreign key reference to lucky_sixes
+  - `mnemonic`: Complete 12-word BIP39 mnemonic phrase
+  - `address`: Wallet address (optional)
+  - `cosmos_address`: Cosmos wallet address (optional)
+  - `balance`: Wallet balance (stored as string to handle large numbers)
+  - `balance_updated_at`: Timestamp of last balance update
+  - `is_notified`: Flag indicating if balance notifications have been sent
+  - `created_at`, `updated_at`: Timestamps
+
 ## Configuration
 
 The application uses the following environment variables for database connection:
@@ -135,13 +147,26 @@ To run the application in development:
 2. Configure database connection in `.env` file.
 3. Run the commands as shown in the Usage section.
 
+### Generate Wallet Mnemonics
+
+To generate 12-word BIP39 wallet mnemonics from LuckySix combinations:
+
+```bash
+go run main.go wallet generate
+```
+
+This command will:
+- Process LuckySix combinations and generate valid 12-word BIP39 mnemonics
+- Use the first 6 words from each LuckySix combination as the base
+- Generate the remaining 6 words to create a valid BIP39 mnemonic
+- Store wallets in the `wallet_balances` table with the complete mnemonic
+- Resume from the last processed LuckySix ID if interrupted
+- Skip already processed LuckySix combinations automatically
+
 ### Generation Order
 
 For best results, generate combinations in this order:
 1. `luckytwo generate` - Generate all two-word combinations first
 2. `luckyfive generate` - Generate five-word combinations
 3. `luckysix generate` - Generate six-word combinations from LuckyFive + LuckyTwo
-
-## License
-
-[Add license information here]
+4. `wallet generate` - Generate 12-word wallet mnemonics from LuckySix combinations

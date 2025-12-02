@@ -75,6 +75,19 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 			}
 
 			// Convert word indices to words (BIP39 uses 0-indexed, but stored as 1-indexed)
+			// Validate that all word indices are within valid range (1-2048)
+			if luckySix.WordOne < 1 || luckySix.WordOne > 2048 ||
+			   luckySix.WordTwo < 1 || luckySix.WordTwo > 2048 ||
+			   luckySix.WordThree < 1 || luckySix.WordThree > 2048 ||
+			   luckySix.WordFour < 1 || luckySix.WordFour > 2048 ||
+			   luckySix.WordFive < 1 || luckySix.WordFive > 2048 ||
+			   luckySix.WordSix < 1 || luckySix.WordSix > 2048 {
+				log.Printf("Invalid word indices for LuckySix ID %d: %d,%d,%d,%d,%d,%d", luckySix.ID,
+					luckySix.WordOne, luckySix.WordTwo, luckySix.WordThree,
+					luckySix.WordFour, luckySix.WordFive, luckySix.WordSix)
+				continue
+			}
+
 			words := []string{
 				wordlist[luckySix.WordOne-1],
 				wordlist[luckySix.WordTwo-1],
