@@ -2,6 +2,12 @@
 
 LuckySix is a comprehensive Go application designed to systematically generate, process, and monitor a vast number of blockchain wallets derived from BIP39 mnemonic phrases. The project generates every possible two-word combination, builds upon them to create 12-word seeds.
 
+## LuckySix
+This is a part of the project. All results you can get by 3 projects.    
+ - [LuckySix](https://github.com/basel-ax/luckysix)
+ - [LuckyEth](https://github.com/basel-ax/lucky-eth)
+ - [LuckyCosmos](https://github.com/basel-ax/lucky-cosmos)
+
 ## Features
 
 - Combinatorial generation of BIP39 word combinations (LuckyTwo, LuckyFive, LuckySix).
@@ -75,10 +81,21 @@ To generate random five-word combinations from the BIP39 word list:
 go run main.go luckyfive generate
 ```
 
+To generate ALL possible five-word combinations (2048^5 combinations - this will take a very long time!):
+
+```bash
+go run main.go luckyfive generate --all
+# or
+go run main.go luckyfive generate -a
+```
+
 This command will:
-- Generate 100 random, non-repeating five-word combinations per run.
+- Generate 100 random, non-repeating five-word combinations per run (default behavior).
+- When using `--all` flag: Generate ALL possible combinations with distinct words.
 - Store each unique combination in the `lucky_fives` table.
 - Skip duplicate combinations automatically.
+
+**Note:** The `--all` flag will generate a massive number of combinations (approximately 34 trillion) and will take an extremely long time to complete. Use with caution!
 
 ### Generate LuckySix Combinations
 
@@ -167,6 +184,8 @@ This command will:
 
 For best results, generate combinations in this order:
 1. `luckytwo generate` - Generate all two-word combinations first
-2. `luckyfive generate` - Generate five-word combinations
+2. `luckyfive generate` - Generate five-word combinations (use `--all` for complete generation)
 3. `luckysix generate` - Generate six-word combinations from LuckyFive + LuckyTwo
 4. `wallet generate` - Generate 12-word wallet mnemonics from LuckySix combinations
+
+**Note:** Using `luckyfive generate --all` will generate all possible combinations but will take a very long time to complete.

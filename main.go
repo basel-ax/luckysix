@@ -83,11 +83,13 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckyFive combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := generateLuckyFive(); err != nil {
+			all, _ := cmd.Flags().GetBool("all")
+			if err := generateLuckyFive(all); err != nil {
 				log.Fatal(err)
 			}
 		},
 	}
+	generateLuckyFiveCmd.Flags().BoolP("all", "a", false, "Generate all possible LuckyFive combinations instead of random samples")
 
 	luckyfiveCmd.AddCommand(generateLuckyFiveCmd)
 
@@ -138,8 +140,8 @@ func generateLuckyTwo() error {
 	return service.GenerateAndSaveLuckyTwo(db)
 }
 
-func generateLuckyFive() error {
-	return service.GenerateAndSaveLuckyFive(db)
+func generateLuckyFive(all bool) error {
+	return service.GenerateAndSaveLuckyFive(db, all)
 }
 
 func generateLuckySix() error {
