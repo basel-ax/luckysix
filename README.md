@@ -66,12 +66,53 @@ This command will:
 
 The combinations are stored in the `luckytwos` table with `word_one` and `word_two` as indices into the BIP39 word list.
 
+### Generate LuckyFive Combinations
+
+To generate random five-word combinations from the BIP39 word list:
+
+```bash
+go run main.go luckyfive generate
+```
+
+This command will:
+- Generate 100 random, non-repeating five-word combinations per run.
+- Store each unique combination in the `lucky_fives` table.
+- Skip duplicate combinations automatically.
+
+### Generate LuckySix Combinations
+
+To generate six-word combinations by combining LuckyFive and LuckyTwo:
+
+```bash
+go run main.go luckysix generate
+```
+
+This command will:
+- Combine each LuckyFive (5 words) with available words from LuckyTwo entries.
+- Ensure no word repetition in the final 6-word combination.
+- Resume from the last generated combination if interrupted.
+- Store combinations in the `lucky_sixes` table with references to source LuckyFive and LuckyTwo.
+
+**Note:** You must generate LuckyTwo and LuckyFive data before running LuckySix generation.
+
 ## Database Schema
 
 - **luckytwos** table:
   - `id`: Primary key
   - `word_one`: Index of the first word (0-2047)
   - `word_two`: Index of the second word (0-2047)
+  - `created_at`, `updated_at`: Timestamps
+
+- **lucky_fives** table:
+  - `id`: Primary key
+  - `word_one`, `word_two`, `word_three`, `word_four`, `word_five`: Indices (0-2047)
+  - `created_at`, `updated_at`: Timestamps
+
+- **lucky_sixes** table:
+  - `id`: Primary key
+  - `lucky_five_id`: Foreign key reference to lucky_fives
+  - `lucky_two_id`: Foreign key reference to luckytwos
+  - `word_one`, `word_two`, `word_three`, `word_four`, `word_five`, `word_six`: Indices (0-2047)
   - `created_at`, `updated_at`: Timestamps
 
 ## Configuration
@@ -91,8 +132,15 @@ The application uses the following environment variables for database connection
 To run the application in development:
 
 1. Ensure PostgreSQL is running.
-2. Set `DATABASE_URL`.
-3. Run the command as shown above.
+2. Configure database connection in `.env` file.
+3. Run the commands as shown in the Usage section.
+
+### Generation Order
+
+For best results, generate combinations in this order:
+1. `luckytwo generate` - Generate all two-word combinations first
+2. `luckyfive generate` - Generate five-word combinations
+3. `luckysix generate` - Generate six-word combinations from LuckyFive + LuckyTwo
 
 ## License
 

@@ -37,7 +37,7 @@ func initDB() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	if err := db.AutoMigrate(&entity.Luckytwo{}, &entity.LuckyFive{}); err != nil {
+	if err := db.AutoMigrate(&entity.Luckytwo{}, &entity.LuckyFive{}, &entity.LuckySix{}, &entity.WalletBalance{}); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 }
@@ -90,8 +90,44 @@ func main() {
 	}
 
 	luckyfiveCmd.AddCommand(generateLuckyFiveCmd)
+
+	var luckysixCmd = &cobra.Command{
+		Use:   "luckysix",
+		Short: "Commands for LuckySix operations",
+	}
+
+	var generateLuckySixCmd = &cobra.Command{
+		Use:   "generate",
+		Short: "Generate LuckySix combinations from LuckyFive and LuckyTwo",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := generateLuckySix(); err != nil {
+				log.Fatal(err)
+			}
+		},
+	}
+
+	luckysixCmd.AddCommand(generateLuckySixCmd)
+
+	var walletCmd = &cobra.Command{
+		Use:   "wallet",
+		Short: "Commands for Wallet operations",
+	}
+
+	var generateWalletCmd = &cobra.Command{
+		Use:   "generate",
+		Short: "Generate 12-word wallet mnemonics from LuckySix combinations",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := generateWallets(); err != nil {
+				log.Fatal(err)
+			}
+		},
+	}
+
+	walletCmd.AddCommand(generateWalletCmd)
 	rootCmd.AddCommand(luckytwoCmd)
 	rootCmd.AddCommand(luckyfiveCmd)
+	rootCmd.AddCommand(luckysixCmd)
+	rootCmd.AddCommand(walletCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
@@ -104,4 +140,12 @@ func generateLuckyTwo() error {
 
 func generateLuckyFive() error {
 	return service.GenerateAndSaveLuckyFive(db)
+}
+
+func generateLuckySix() error {
+	return service.GenerateAndSaveLuckySix(db)
+}
+
+func generateWallets() error {
+	return service.GenerateWalletsFromLuckySix(db)
 }
