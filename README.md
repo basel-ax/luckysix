@@ -22,14 +22,30 @@ LuckySix is a comprehensive Go application designed to systematically generate, 
    ```
 
 2. Install dependencies:
-   ```bash
-   go mod tidy
-   ```
+    ```bash
+    go mod tidy
+    ```
 
-3. Set up your PostgreSQL database and set the `DATABASE_URL` environment variable:
-   ```bash
-   export DATABASE_URL="postgres://user:password@localhost/dbname?sslmode=disable"
-   ```
+3. Copy the example environment file and configure your database connection:
+    ```bash
+    cp example.env .env
+    # Edit .env with your database credentials
+    ```
+
+4. Set up your PostgreSQL database and configure the database connection in `.env` using either:
+    - `DATABASE_URL` environment variable:
+      ```bash
+      export DATABASE_URL="postgres://user:password@localhost/dbname?sslmode=disable"
+      ```
+    - Or individual environment variables:
+      ```bash
+      export DB_HOST=localhost
+      export DB_PORT=5432
+      export DB_USER=user
+      export DB_PASSWORD=password
+      export DB_NAME=dbname
+      export DB_SSLMODE=disable
+      ```
 
 ## Usage
 
@@ -42,7 +58,7 @@ go run main.go luckytwo generate
 ```
 
 This command will:
-- Connect to the PostgreSQL database specified by `DATABASE_URL`.
+- Connect to the PostgreSQL database using the configured environment variables.
 - Automatically migrate the database schema.
 - Generate and save all 2048 x 2048 = 4,194,304 possible two-word combinations.
 - Resume from the last generated combination if the process was interrupted previously.
@@ -60,9 +76,15 @@ The combinations are stored in the `luckytwos` table with `word_one` and `word_t
 
 ## Configuration
 
-The application uses the following environment variables:
+The application uses the following environment variables for database connection:
 
-- `DATABASE_URL`: PostgreSQL connection string (required)
+- `DATABASE_URL`: PostgreSQL connection string (optional, if not set, individual vars are used)
+- `DB_HOST`: Database host (default: localhost)
+- `DB_PORT`: Database port (default: 5432)
+- `DB_USER`: Database user (required if DATABASE_URL not set)
+- `DB_PASSWORD`: Database password (required if DATABASE_URL not set)
+- `DB_NAME`: Database name (required if DATABASE_URL not set)
+- `DB_SSLMODE`: SSL mode (default: disable)
 
 ## Development
 
