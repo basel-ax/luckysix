@@ -113,6 +113,24 @@ This command will:
 
 **Note:** You must generate LuckyTwo and LuckyFive data before running LuckySix generation.
 
+### Generate Random LuckySix Combinations
+
+To generate six-word combinations using random LuckyFive entries:
+
+```bash
+go run main.go luckysix generate-random
+```
+
+This command will:
+- Select random LuckyFive entries from the database
+- Check if each LuckyFive has already been used (duplicate checking via `lucky_five_id`)
+- Combine them with random LuckyTwo entries to create LuckySix combinations
+- Generate 1000 random combinations per run
+- Use shuffling algorithms to ensure randomness
+- Store combinations in the `lucky_sixes` table with references to source LuckyFive and LuckyTwo
+
+**Note:** This is useful when you have a large amount of LuckyFive entries and want to generate LuckySix combinations randomly rather than sequentially.
+
 ## Database Schema
 
 - **luckytwos** table:
@@ -185,7 +203,8 @@ This command will:
 For best results, generate combinations in this order:
 1. `luckytwo generate` - Generate all two-word combinations first
 2. `luckyfive generate` - Generate five-word combinations (use `--all` for complete generation)
-3. `luckysix generate` - Generate six-word combinations from LuckyFive + LuckyTwo
-4. `wallet generate` - Generate 12-word wallet mnemonics from LuckySix combinations
+3. `luckysix generate` - Generate six-word combinations from LuckyFive + LuckyTwo (sequential)
+4. `luckysix generate-random` - Generate six-word combinations from random LuckyFive entries
+5. `wallet generate` - Generate 12-word wallet mnemonics from LuckySix combinations
 
 **Note:** Using `luckyfive generate --all` will generate all possible combinations but will take a very long time to complete.

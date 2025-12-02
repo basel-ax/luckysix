@@ -108,7 +108,18 @@ func main() {
 		},
 	}
 
+	var generateRandomLuckySixCmd = &cobra.Command{
+		Use:   "generate-random",
+		Short: "Generate LuckySix combinations using random LuckyFive entries",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := generateRandomLuckySix(); err != nil {
+				log.Fatal(err)
+			}
+		},
+	}
+
 	luckysixCmd.AddCommand(generateLuckySixCmd)
+	luckysixCmd.AddCommand(generateRandomLuckySixCmd)
 
 	var walletCmd = &cobra.Command{
 		Use:   "wallet",
@@ -146,6 +157,10 @@ func generateLuckyFive(all bool) error {
 
 func generateLuckySix() error {
 	return service.GenerateAndSaveLuckySix(db)
+}
+
+func generateRandomLuckySix() error {
+	return service.GenerateAndSaveRandomLuckySix(db)
 }
 
 func generateWallets() error {
