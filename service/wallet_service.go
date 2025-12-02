@@ -77,11 +77,11 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 			// Convert word indices to words (BIP39 uses 0-indexed, but stored as 1-indexed)
 			// Validate that all word indices are within valid range (1-2048)
 			if luckySix.WordOne < 1 || luckySix.WordOne > 2048 ||
-			   luckySix.WordTwo < 1 || luckySix.WordTwo > 2048 ||
-			   luckySix.WordThree < 1 || luckySix.WordThree > 2048 ||
-			   luckySix.WordFour < 1 || luckySix.WordFour > 2048 ||
-			   luckySix.WordFive < 1 || luckySix.WordFive > 2048 ||
-			   luckySix.WordSix < 1 || luckySix.WordSix > 2048 {
+				luckySix.WordTwo < 1 || luckySix.WordTwo > 2048 ||
+				luckySix.WordThree < 1 || luckySix.WordThree > 2048 ||
+				luckySix.WordFour < 1 || luckySix.WordFour > 2048 ||
+				luckySix.WordFive < 1 || luckySix.WordFive > 2048 ||
+				luckySix.WordSix < 1 || luckySix.WordSix > 2048 {
 				log.Printf("Invalid word indices for LuckySix ID %d: %d,%d,%d,%d,%d,%d", luckySix.ID,
 					luckySix.WordOne, luckySix.WordTwo, luckySix.WordThree,
 					luckySix.WordFour, luckySix.WordFive, luckySix.WordSix)
@@ -111,8 +111,39 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 				Mnemonic:   mnemonic,
 			}
 
-			if err := db.Create(&wallet).Error; err != nil {
-				return err
+			// Handle duplicate key violations by retrying with a different mnemonic
+			maxRetries := 5
+			var createErr error
+			for retry := 0; retry < maxRetries; retry++ {
+				createErr = db.Create(&wallet).Error
+				if createErr == nil {
+					break // Success
+				}
+
+				// Check if it's a duplicate key violation
+				if strings.Contains(createErr.Error(), "duplicate key value violates unique constraint") ||
+					strings.Contains(createErr.Error(), "unique constraint") ||
+					strings.Contains(createErr.Error(), "duplicate key") {
+					log.Printf("Duplicate mnemonic detected for LuckySix ID %d (attempt %d/%d), regenerating...",
+						luckySix.ID, retry+1, maxRetries)
+
+					// Generate a new mnemonic and try again
+					mnemonic, err = generateValidMnemonic(words, wordlist)
+					if err != nil {
+						log.Printf("Failed to regenerate mnemonic for LuckySix ID %d: %v", luckySix.ID, err)
+						break
+					}
+					wallet.Mnemonic = mnemonic
+				} else {
+					// For other errors, break and return the error
+					break
+				}
+			}
+
+			if createErr != nil {
+				log.Printf("Failed to save wallet for LuckySix ID %d after %d attempts: %v",
+					luckySix.ID, maxRetries, createErr)
+				continue // Skip this record and continue with others
 			}
 		}
 
@@ -132,11 +163,11 @@ func generateValidMnemonic(firstSixWords []string, wordlist []string) (string, e
 	// Each word represents 11 bits (2048 = 2^11)
 	// First 6 words = 66 bits, we need to find remaining 6 words (66 bits)
 	// The last word contains 7 bits of entropy + 4 bits checksum
-	
+
 	// Strategy: Try combinations with a smarter approach
 	// We'll iterate through reasonable combinations and check validity
 	maxAttempts := 100000 // Limit attempts to avoid infinite loops
-	
+
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		// Use a deterministic but varied approach
 		// Calculate indices based on the attempt number
@@ -145,7 +176,7 @@ func generateValidMnemonic(firstSixWords []string, wordlist []string) (string, e
 		idx8 := (attempt / (len(wordlist) * len(wordlist))) % len(wordlist)
 		idx9 := (attempt / (len(wordlist) * len(wordlist) * len(wordlist))) % len(wordlist)
 		idx10 := (attempt / (len(wordlist) * len(wordlist) * len(wordlist) * len(wordlist))) % len(wordlist)
-		
+
 		// For the last word, we need to find one that makes the checksum valid
 		// Try different values for the 11th word
 		for idx11 := 0; idx11 < len(wordlist); idx11++ {
