@@ -37,7 +37,7 @@ func GenerateAndSaveLuckySix(db *gorm.DB) error {
 	// Load all LuckyTwo records ONCE to avoid repeated queries
 	log.Println("Loading all LuckyTwo records...")
 	var allLuckyTwos []entity.Luckytwo
-	if err := db.Order("id asc").Find(&allLuckyTwos).Error; err != nil {
+	if err := db.Model(&entity.Luckytwo{}).Order("id asc").Select("id, word_one, word_two").Find(&allLuckyTwos).Error; err != nil {
 		return err
 	}
 
