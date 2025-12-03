@@ -125,7 +125,7 @@ This command will:
 - Select random LuckyFive entries from the database
 - Check if each LuckyFive has already been used (duplicate checking via `lucky_five_id`)
 - Combine them with random LuckyTwo entries to create LuckySix combinations
-- Generate 1000 random combinations per run
+- Generate 10000 random combinations per run
 - Use shuffling algorithms to ensure randomness
 - Store combinations in the `lucky_sixes` table with references to source LuckyFive and LuckyTwo
 

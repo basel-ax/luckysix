@@ -243,7 +243,7 @@ func GenerateAndSaveRandomLuckySix(db *gorm.DB) error {
 
 	// Generate random LuckySix combinations
 	generated := 0
-	maxGenerate := 1000 // Generate 1000 random combinations per run
+	maxGenerate := 10000 // Generate 10000 random combinations per run
 
 	for generated < maxGenerate {
 		// Select a random LuckyFive

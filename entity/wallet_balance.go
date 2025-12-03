@@ -14,6 +14,7 @@ type WalletBalance struct {
 	Address          string     `gorm:"column:address"`
 	CosmosAddress    string     `gorm:"column:cosmos_address"`
 	Balance          string     `gorm:"column:balance"` // Stored as string to handle large numbers
+	CosmosBalance    string     `gorm:"column:balance"` // Stored as string to handle large numbers
 	BalanceUpdatedAt *time.Time `gorm:"column:balance_updated_at"`
 	IsNotified       bool       `gorm:"column:is_notified;default:false"`
 }
