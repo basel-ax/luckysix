@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GenerateAndSaveLuckyTwo(db *gorm.DB) error {
+func GenerateAndSaveLuckyTwo(db *gorm.DB) (int64, error) {
 	// Get BIP39 word list
 	wordList := bip39.GetWordList()
 	wordCount := len(wordList)
@@ -31,8 +31,12 @@ func GenerateAndSaveLuckyTwo(db *gorm.DB) error {
 	} else if err == gorm.ErrRecordNotFound {
 		log.Println("No previous LuckyTwo found, starting from beginning")
 	} else {
-		return err
+		return 0, err
 	}
+
+	// Count records before generation
+	var countBefore int64
+	db.Model(&entity.Luckytwo{}).Count(&countBefore)
 
 	// Generate combinations starting from startI, startJ
 	for i := startI; i < uint(wordCount); i++ {
@@ -46,12 +50,17 @@ func GenerateAndSaveLuckyTwo(db *gorm.DB) error {
 				WordTwo: j,
 			}
 			if err := db.Create(&luckyTwo).Error; err != nil {
-				return err
+				return 0, err
 			}
 		}
 		log.Printf("Completed combinations for word %d", i)
 	}
 
+	// Count records after generation
+	var countAfter int64
+	db.Model(&entity.Luckytwo{}).Count(&countAfter)
+
+	generated := countAfter - countBefore
 	log.Println("All LuckyTwo combinations generated and saved")
-	return nil
+	return generated, nil
 }

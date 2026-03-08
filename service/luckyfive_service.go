@@ -23,7 +23,7 @@ func areAllDistinct(words []uint) bool {
 	return true
 }
 
-func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) error {
+func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) (int64, error) {
 	// Get BIP39 word list
 	wordList := bip39.GetWordList()
 	wordCount := len(wordList)
@@ -32,6 +32,10 @@ func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) error {
 
 	// Seed random
 	rand.Seed(time.Now().UnixNano())
+
+	// Count records before generation
+	var countBefore int64
+	db.Model(&entity.LuckyFive{}).Count(&countBefore)
 
 	// Generate combinations based on the 'all' parameter
 	if all {
@@ -64,7 +68,7 @@ func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) error {
 									words[0], words[1], words[2], words[3], words[4]).Count(&count)
 								if count == 0 {
 									if err := db.Create(&luckyFive).Error; err != nil {
-										return err
+										return 0, err
 									}
 									generated++
 									if generated%1000 == 0 {
@@ -110,7 +114,7 @@ func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) error {
 				words[0], words[1], words[2], words[3], words[4]).Count(&count)
 			if count == 0 {
 				if err := db.Create(&luckyFive).Error; err != nil {
-					return err
+					return 0, err
 				}
 				log.Printf("Generated LuckyFive: %d %d %d %d %d", words[0], words[1], words[2], words[3], words[4])
 				generated++
@@ -120,6 +124,11 @@ func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) error {
 		}
 	}
 
+	// Count records after generation
+	var countAfter int64
+	db.Model(&entity.LuckyFive{}).Count(&countAfter)
+
+	generated := countAfter - countBefore
 	log.Println("LuckyFive generation completed")
-	return nil
+	return generated, nil
 }

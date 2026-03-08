@@ -174,6 +174,95 @@ The application uses the following environment variables for database connection
 - `DB_NAME`: Database name (required if DATABASE_URL not set)
 - `DB_SSLMODE`: SSL mode (default: disable)
 
+### Telegram Notifications (Optional)
+
+To receive Telegram notifications when generation commands complete in production mode:
+
+1. Create a bot by talking to [@BotFather](https://t.me/BotFather) on Telegram
+2. Get your bot token
+3. Get your chat ID by talking to [@userinfobot](https://t.me/userinfobot) or create a group/channel and add the bot
+4. Add the following to your `.env` file:
+
+```bash
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+```
+
+## Cron Job Setup
+
+You can set up cron jobs to run the generation commands automatically. The application includes:
+- **Production mode (`--prod`)**: Suppresses console output and sends Telegram notifications when commands complete
+- **Duplicate run prevention**: Lock files prevent the same command from running multiple times simultaneously
+
+### Crontab Configuration
+
+Edit your crontab with `crontab -e` and add the following entries:
+
+```bash
+# LuckySix Cron Jobs
+# Run all three generation commands in sequence
+
+# Generate LuckyTwo combinations (every day at 2 AM)
+0 2 * * * cd /path/to/luckysix && ./luckysix luckytwo generate --prod >> /var/log/luckysix.log 2>&1
+
+# Generate LuckyFive combinations (every day at 3 AM)
+0 3 * * * cd /path/to/luckysix && ./luckysix luckyfive generate --prod >> /var/log/luckysix.log 2>&1
+
+# Generate LuckySix combinations (every day at 4 AM)
+0 4 * * * cd /path/to/luckysix && ./luckysix luckysix generate --prod >> /var/log/luckysix.log 2>&1
+```
+
+### Alternative: Single Cron Job Running All Commands
+
+You can also create a single script that runs all commands sequentially:
+
+```bash
+#!/bin/bash
+# run_luckysix.sh
+
+LOG_FILE="/var/log/luckysix.log"
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+echo "$DATE - Starting LuckySix generation" >> $LOG_FILE
+
+cd /path/to/luckysix
+
+./luckysix luckytwo generate --prod >> $LOG_FILE 2>&1
+echo "$DATE - LuckyTwo completed" >> $LOG_FILE
+
+./luckysix luckyfive generate --prod >> $LOG_FILE 2>&1
+echo "$DATE - LuckyFive completed" >> $LOG_FILE
+
+./luckysix luckysix generate --prod >> $LOG_FILE 2>&1
+echo "$DATE - LuckySix completed" >> $LOG_FILE
+
+echo "$DATE - All generation completed" >> $LOG_FILE
+```
+
+Make the script executable and add to crontab:
+
+```bash
+chmod +x /path/to/luckysix/run_luckysix.sh
+
+# Crontab entry (every day at 2 AM)
+0 2 * * * /path/to/luckysix/run_luckysix.sh
+```
+
+### Lock Files
+
+The application uses lock files in `/tmp/luckysix/` to prevent duplicate runs:
+- Lock files are automatically created when a command starts
+- If a command is already running, new invocations will be skipped
+- Lock files expire after 24 hours to handle crashed processes
+
+### Building the Application
+
+To build the application for use in cron jobs:
+
+```bash
+go build -o luckysix main.go
+```
+
 ## Development
 
 To run the application in development:

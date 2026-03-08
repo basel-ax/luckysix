@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -14,6 +15,17 @@ import (
 )
 
 var db *gorm.DB
+var prodMode bool
+
+// logWriter implements io.Writer for suppressing logs in prod mode
+type logWriter struct{}
+
+func (logWriter) Write(p []byte) (n int, err error) {
+	if prodMode {
+		return len(p), nil
+	}
+	return os.Stderr.Write(p)
+}
 
 func initDB() {
 	dsn := os.Getenv("DATABASE_URL")
@@ -66,8 +78,36 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckyTwo combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := generateLuckyTwo(); err != nil {
+			// Suppress logs in prod mode
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
+			// Check for cron lock
+			runFunc := func() error {
+				rows, err := service.GenerateAndSaveLuckyTwo(db)
+				if err != nil {
+					return err
+				}
+				// Send Telegram notification in prod mode
+				if prodMode {
+					return service.SendGenerationNotification("LuckyTwo", rows, nil)
+				}
+				return nil
+			}
+
+			acquired, err := service.CheckAndRunCommand("luckytwo-generate", runFunc)
+			if err != nil {
+				if prodMode {
+					service.SendGenerationNotification("LuckyTwo", 0, err)
+				}
 				log.Fatal(err)
+			}
+			if !acquired {
+				log.Println("luckytwo generate is already running, skipping...")
+				if prodMode {
+					service.SendGenerationNotification("LuckyTwo", 0, fmt.Errorf("command already running"))
+				}
 			}
 		},
 	}
@@ -83,9 +123,38 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckyFive combinations",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Suppress logs in prod mode
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
 			all, _ := cmd.Flags().GetBool("all")
-			if err := generateLuckyFive(all); err != nil {
+
+			// Check for cron lock
+			runFunc := func() error {
+				rows, err := service.GenerateAndSaveLuckyFive(db, all)
+				if err != nil {
+					return err
+				}
+				// Send Telegram notification in prod mode
+				if prodMode {
+					return service.SendGenerationNotification("LuckyFive", rows, nil)
+				}
+				return nil
+			}
+
+			acquired, err := service.CheckAndRunCommand("luckyfive-generate", runFunc)
+			if err != nil {
+				if prodMode {
+					service.SendGenerationNotification("LuckyFive", 0, err)
+				}
 				log.Fatal(err)
+			}
+			if !acquired {
+				log.Println("luckyfive generate is already running, skipping...")
+				if prodMode {
+					service.SendGenerationNotification("LuckyFive", 0, fmt.Errorf("command already running"))
+				}
 			}
 		},
 	}
@@ -102,8 +171,36 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckySix combinations from LuckyFive and LuckyTwo",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := generateLuckySix(); err != nil {
+			// Suppress logs in prod mode
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
+			// Check for cron lock
+			runFunc := func() error {
+				rows, err := service.GenerateAndSaveLuckySix(db)
+				if err != nil {
+					return err
+				}
+				// Send Telegram notification in prod mode
+				if prodMode {
+					return service.SendGenerationNotification("LuckySix", rows, nil)
+				}
+				return nil
+			}
+
+			acquired, err := service.CheckAndRunCommand("luckysix-generate", runFunc)
+			if err != nil {
+				if prodMode {
+					service.SendGenerationNotification("LuckySix", 0, err)
+				}
 				log.Fatal(err)
+			}
+			if !acquired {
+				log.Println("luckysix generate is already running, skipping...")
+				if prodMode {
+					service.SendGenerationNotification("LuckySix", 0, fmt.Errorf("command already running"))
+				}
 			}
 		},
 	}
@@ -112,7 +209,12 @@ func main() {
 		Use:   "generate-random",
 		Short: "Generate LuckySix combinations using random LuckyFive entries",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := generateRandomLuckySix(); err != nil {
+			// Suppress logs in prod mode
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
+			if err := service.GenerateAndSaveRandomLuckySix(db); err != nil {
 				log.Fatal(err)
 			}
 		},
@@ -130,13 +232,22 @@ func main() {
 		Use:   "generate",
 		Short: "Generate 12-word wallet mnemonics from LuckySix combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := generateWallets(); err != nil {
+			// Suppress logs in prod mode
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
+			if err := service.GenerateWalletsFromLuckySix(db); err != nil {
 				log.Fatal(err)
 			}
 		},
 	}
 
 	walletCmd.AddCommand(generateWalletCmd)
+
+	// Add global --prod flag
+	rootCmd.PersistentFlags().BoolVarP(&prodMode, "prod", "p", false, "Production mode: suppress console output and send Telegram notifications")
+
 	rootCmd.AddCommand(luckytwoCmd)
 	rootCmd.AddCommand(luckyfiveCmd)
 	rootCmd.AddCommand(luckysixCmd)
@@ -147,22 +258,5 @@ func main() {
 	}
 }
 
-func generateLuckyTwo() error {
-	return service.GenerateAndSaveLuckyTwo(db)
-}
-
-func generateLuckyFive(all bool) error {
-	return service.GenerateAndSaveLuckyFive(db, all)
-}
-
-func generateLuckySix() error {
-	return service.GenerateAndSaveLuckySix(db)
-}
-
-func generateRandomLuckySix() error {
-	return service.GenerateAndSaveRandomLuckySix(db)
-}
-
-func generateWallets() error {
-	return service.GenerateWalletsFromLuckySix(db)
-}
+// Suppress unused variable warning
+var _ = io.Writer(nil)
