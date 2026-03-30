@@ -49,8 +49,22 @@ func initDB() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	if err := db.AutoMigrate(&entity.Luckytwo{}, &entity.LuckyFive{}, &entity.LuckySix{}, &entity.WalletBalance{}); err != nil {
-		log.Fatal("Failed to migrate database:", err)
+	migrator := db.Migrator()
+	tables := []interface{}{
+		&entity.Luckytwo{},
+		&entity.LuckyFive{},
+		&entity.LuckySix{},
+		&entity.WalletBalance{},
+	}
+	for _, t := range tables {
+		if !migrator.HasTable(t) {
+			if err := migrator.CreateTable(t); err != nil {
+				log.Fatalf("Failed to create table: %v", err)
+			}
+			log.Printf("Created table: %T", t)
+		} else {
+			log.Printf("Table already exists: %T", t)
+		}
 	}
 }
 
