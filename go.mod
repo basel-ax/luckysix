@@ -1,6 +1,6 @@
 module github.com/basel-ax/luckysix
 
-go 1.25.3
+go 1.24.4
 
 require (
 	github.com/alexvec/go-bip39 v1.1.0
