@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/basel-ax/luckysix/entity"
 	"github.com/basel-ax/luckysix/service"
@@ -59,6 +60,11 @@ func initDB() {
 	for _, t := range tables {
 		if !migrator.HasTable(t) {
 			if err := migrator.CreateTable(t); err != nil {
+				// Handle the case where table was created by another process after our check
+				if strings.Contains(err.Error(), "already exists") {
+					log.Printf("Table already exists (created by another process): %T", t)
+					continue
+				}
 				log.Fatalf("Failed to create table: %v", err)
 			}
 			log.Printf("Created table: %T", t)
