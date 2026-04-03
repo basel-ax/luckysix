@@ -37,6 +37,7 @@ func GenerateAndSaveLuckyTwo(db *gorm.DB) (int64, error) {
 	// Count records before generation
 	var countBefore int64
 	db.Model(&entity.Luckytwo{}).Count(&countBefore)
+	log.Printf("Records in database before generation: %d", countBefore)
 
 	// Generate combinations starting from startI, startJ
 	for i := startI; i < uint(wordCount); i++ {
@@ -59,8 +60,10 @@ func GenerateAndSaveLuckyTwo(db *gorm.DB) (int64, error) {
 	// Count records after generation
 	var countAfter int64
 	db.Model(&entity.Luckytwo{}).Count(&countAfter)
+	log.Printf("Records in database after generation: %d", countAfter)
 
 	generated := countAfter - countBefore
+	log.Printf("New combinations generated: %d", generated)
 	log.Println("All LuckyTwo combinations generated and saved")
 	return generated, nil
 }

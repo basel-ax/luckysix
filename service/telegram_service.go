@@ -51,6 +51,8 @@ func SendGenerationNotification(command string, rowsCreated int64, err error) er
 
 	if err != nil {
 		message = fmt.Sprintf("❌ %s generation completed with error: %v", command, err)
+	} else if rowsCreated == -1 {
+		message = fmt.Sprintf("⏭️ %s skipped — already running", command)
 	} else {
 		message = fmt.Sprintf("✅ %s generation completed. Rows created/updated: %d", command, rowsCreated)
 	}

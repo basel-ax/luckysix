@@ -126,7 +126,7 @@ func main() {
 			if !acquired {
 				log.Println("luckytwo generate is already running, skipping...")
 				if prodMode {
-					service.SendGenerationNotification("LuckyTwo", 0, fmt.Errorf("command already running"))
+					service.SendGenerationNotification("LuckyTwo", -1, nil)
 				}
 			}
 		},
@@ -173,7 +173,7 @@ func main() {
 			if !acquired {
 				log.Println("luckyfive generate is already running, skipping...")
 				if prodMode {
-					service.SendGenerationNotification("LuckyFive", 0, fmt.Errorf("command already running"))
+					service.SendGenerationNotification("LuckyFive", -1, nil)
 				}
 			}
 		},
@@ -219,7 +219,7 @@ func main() {
 			if !acquired {
 				log.Println("luckysix generate is already running, skipping...")
 				if prodMode {
-					service.SendGenerationNotification("LuckySix", 0, fmt.Errorf("command already running"))
+					service.SendGenerationNotification("LuckySix", -1, nil)
 				}
 			}
 		},
