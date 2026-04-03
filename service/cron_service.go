@@ -21,6 +21,36 @@ type CronLock struct {
 	lockFile    string
 }
 
+// getPIDFromLockFile extracts the PID from the lock file
+func (c *CronLock) getPIDFromLockFile() (int, error) {
+	data, err := os.ReadFile(c.lockFile)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read lock file: %w", err)
+	}
+
+	// Parse PID from first line: "PID: 12345"
+	var pid int
+	_, err = fmt.Sscanf(string(data), "PID: %d", &pid)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse PID from lock file: %w", err)
+	}
+
+	return pid, nil
+}
+
+// isProcessRunning checks if a process with the given PID is currently running
+func (c *CronLock) isProcessRunning(pid int) bool {
+	// On Unix-like systems, we can check if a process exists by looking at /proc/<pid>
+	// This approach works without needing to send signals
+	if pid <= 0 {
+		return false
+	}
+
+	// Check if /proc/<pid> exists
+	_, err := os.Stat(fmt.Sprintf("/proc/%d", pid))
+	return err == nil
+}
+
 // NewCronLock creates a new CronLock for the given command
 func NewCronLock(commandName string) *CronLock {
 	// Ensure lock directory exists
@@ -40,7 +70,7 @@ func (c *CronLock) Acquire() (bool, error) {
 	// Check if lock file exists
 	info, err := os.Stat(c.lockFile)
 	if err == nil {
-		// Lock file exists, check if it's stale
+		// Lock file exists, check if it's stale or if process is still running
 		if time.Since(info.ModTime()) > LockFileTimeout {
 			// Lock is stale, remove it
 			log.Printf("Removing stale lock for %s", c.commandName)
@@ -48,9 +78,25 @@ func (c *CronLock) Acquire() (bool, error) {
 				return false, fmt.Errorf("failed to remove stale lock: %w", err)
 			}
 		} else {
-			// Lock is still active
-			log.Printf("%s is already running (lock file exists)", c.commandName)
-			return false, nil
+			// Check if the process is still running
+			if pid, err := c.getPIDFromLockFile(); err == nil && pid > 0 {
+				if c.isProcessRunning(pid) {
+					// Lock is still active and process is running
+					log.Printf("%s is already running (PID: %d)", c.commandName, pid)
+					return false, nil
+				}
+				// Process is not running, remove stale lock
+				log.Printf("Removing stale lock for %s (PID %d not running)", c.commandName, pid)
+				if err := os.Remove(c.lockFile); err != nil {
+					return false, fmt.Errorf("failed to remove stale lock: %w", err)
+				}
+			} else {
+				// Could not read PID from lock file, treat as stale
+				log.Printf("Removing stale lock for %s (could not read PID)", c.commandName)
+				if err := os.Remove(c.lockFile); err != nil {
+					return false, fmt.Errorf("failed to remove stale lock: %w", err)
+				}
+			}
 		}
 	} else if !os.IsNotExist(err) {
 		// Error checking lock file
@@ -98,7 +144,11 @@ func CheckAndRunCommand(commandName string, runFunc func() error) (bool, error) 
 	}
 
 	// Ensure lock is released when done
-	defer lock.Release()
+	defer func() {
+		if err := lock.Release(); err != nil {
+			log.Printf("Warning: failed to release lock for %s: %v", commandName, err)
+		}
+	}()
 
 	// Run the command
 	if err := runFunc(); err != nil {

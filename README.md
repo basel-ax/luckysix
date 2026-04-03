@@ -200,16 +200,16 @@ Edit your crontab with `crontab -e` and add the following entries:
 
 ```bash
 # LuckySix Cron Jobs
-# Run all three generation commands in sequence
+# Run generation commands at specified intervals
 
-# Generate LuckyTwo combinations (every day at 2 AM)
-0 2 * * * cd /path/to/luckysix && ./luckysix luckytwo generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckyTwo combinations (every 20 minutes)
+*/20 * * * * cd /path/to/luckysix && go run main.go luckytwo generate --prod >> /var/log/luckysix.log 2>&1
 
-# Generate LuckyFive combinations (every day at 3 AM)
-0 3 * * * cd /path/to/luckysix && ./luckysix luckyfive generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckyFive combinations (every 30 minutes)
+*/30 * * * * cd /path/to/luckysix && go run main.go luckyfive generate --prod >> /var/log/luckysix.log 2>&1
 
-# Generate LuckySix combinations (every day at 4 AM)
-0 4 * * * cd /path/to/luckysix && ./luckysix luckysix generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckySix combinations (every 45 minutes)
+*/45 * * * * cd /path/to/luckysix && go run main.go luckysix generate --prod >> /var/log/luckysix.log 2>&1
 ```
 
 ### Alternative: Single Cron Job Running All Commands
@@ -227,13 +227,13 @@ echo "$DATE - Starting LuckySix generation" >> $LOG_FILE
 
 cd /path/to/luckysix
 
-./luckysix luckytwo generate --prod >> $LOG_FILE 2>&1
+go run main.go luckytwo generate --prod >> $LOG_FILE 2>&1
 echo "$DATE - LuckyTwo completed" >> $LOG_FILE
 
-./luckysix luckyfive generate --prod >> $LOG_FILE 2>&1
+go run main.go luckyfive generate --prod >> $LOG_FILE 2>&1
 echo "$DATE - LuckyFive completed" >> $LOG_FILE
 
-./luckysix luckysix generate --prod >> $LOG_FILE 2>&1
+go run main.go luckysix generate --prod >> $LOG_FILE 2>&1
 echo "$DATE - LuckySix completed" >> $LOG_FILE
 
 echo "$DATE - All generation completed" >> $LOG_FILE
@@ -244,8 +244,8 @@ Make the script executable and add to crontab:
 ```bash
 chmod +x /path/to/luckysix/run_luckysix.sh
 
-# Crontab entry (every day at 2 AM)
-0 2 * * * /path/to/luckysix/run_luckysix.sh
+# Crontab entry (runs every 20 minutes to stagger the jobs)
+*/20 * * * * /path/to/luckysix/run_luckysix.sh
 ```
 
 ### Lock Files
