@@ -13,6 +13,7 @@ import (
 func TelegramNotification(message string) error {
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	chatID := os.Getenv("TELEGRAM_CHAT_ID")
+	topicID := os.Getenv("TELEGRAM_TOPIC_ID")
 
 	if botToken == "" || chatID == "" {
 		log.Println("Telegram credentials not configured. Skipping notification.")
@@ -24,6 +25,11 @@ func TelegramNotification(message string) error {
 	data := url.Values{}
 	data.Set("chat_id", chatID)
 	data.Set("text", message)
+
+	// Add topic_thread_id if TELEGRAM_TOPIC_ID is set (for topics in groups)
+	if topicID != "" {
+		data.Set("message_thread_id", topicID)
+	}
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,

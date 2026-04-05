@@ -181,11 +181,13 @@ To receive Telegram notifications when generation commands complete in productio
 1. Create a bot by talking to [@BotFather](https://t.me/BotFather) on Telegram
 2. Get your bot token
 3. Get your chat ID by talking to [@userinfobot](https://t.me/userinfobot) or create a group/channel and add the bot
-4. Add the following to your `.env` file:
+4. (Optional) For sending messages to a specific topic in a group, get the topic ID using [@getidsbot](https://t.me/getidsbot) or from the topic URL
+5. Add the following to your `.env` file:
 
 ```bash
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
+TELEGRAM_TOPIC_ID=your_topic_id_here  # Optional: leave empty for group chat, set for topic
 ```
 
 ## Cron Job Setup
