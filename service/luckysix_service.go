@@ -55,9 +55,17 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 
 	// Process LuckyFive in batches to manage memory
 	const luckyFiveBatchSize = 100
+	const maxGeneratePerRun = 10000
+	const maxLuckyTwoPerFive = 200 // Limit LuckyTwo iterations per LuckyFive to prevent runaway processing
 	luckyFiveOffset := 0
+	generatedThisRun := 0
 
 	for {
+		if generatedThisRun >= maxGeneratePerRun {
+			log.Printf("Reached max generate limit (%d) for this run", maxGeneratePerRun)
+			break
+		}
+
 		var luckyFives []entity.LuckyFive
 		err := db.Where("id >= ?", startLuckyFiveID).
 			Order("id asc").
@@ -81,6 +89,9 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 
 		// Process each LuckyFive
 		for _, luckyFive := range luckyFives {
+			if generatedThisRun >= maxGeneratePerRun {
+				break
+			}
 			// Create a set of words already in LuckyFive
 			existingWords := map[uint]bool{
 				luckyFive.WordOne:   true,
@@ -103,7 +114,15 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 			}
 
 			// Try to combine with each LuckyTwo
+			luckyTwoCount := 0
 			for i := luckyTwoStartIdx; i < len(allLuckyTwos); i++ {
+				if generatedThisRun >= maxGeneratePerRun {
+					break
+				}
+				if luckyTwoCount >= maxLuckyTwoPerFive {
+					break
+				}
+				luckyTwoCount++
 				luckyTwo := allLuckyTwos[i]
 
 				// Check if either word from LuckyTwo is not in LuckyFive
@@ -127,9 +146,11 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= insertBatchSize {
-						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+						n, err := insertLuckySixBatch(db, luckySixBatch)
+						if err != nil {
 							return 0, err
 						}
+						generatedThisRun += n
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
 					}
 				}
@@ -151,9 +172,11 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= insertBatchSize {
-						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+						n, err := insertLuckySixBatch(db, luckySixBatch)
+						if err != nil {
 							return 0, err
 						}
+						generatedThisRun += n
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
 					}
 				}
@@ -167,9 +190,11 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 
 		// Insert any remaining records in the batch
 		if len(luckySixBatch) > 0 {
-			if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+			n, err := insertLuckySixBatch(db, luckySixBatch)
+			if err != nil {
 				return 0, err
 			}
+			generatedThisRun += n
 		}
 
 		log.Printf("Completed batch: processed %d LuckyFive records", len(luckyFives))
@@ -186,13 +211,13 @@ func GenerateAndSaveLuckySix(db *gorm.DB) (int64, error) {
 }
 
 // insertLuckySixBatch inserts a batch of LuckySix records, skipping duplicates
-func insertLuckySixBatch(db *gorm.DB, batch []entity.LuckySix) error {
+// Returns the number of records actually inserted
+func insertLuckySixBatch(db *gorm.DB, batch []entity.LuckySix) (int, error) {
 	if len(batch) == 0 {
-		return nil
+		return 0, nil
 	}
 
-	// Use individual inserts with ON CONFLICT DO NOTHING to handle duplicates
-	// This is more reliable than CreateInBatches for handling unique constraint violations
+	inserted := 0
 	for _, ls := range batch {
 		// Check if this combination already exists
 		var count int64
@@ -201,17 +226,18 @@ func insertLuckySixBatch(db *gorm.DB, batch []entity.LuckySix) error {
 				ls.WordOne, ls.WordTwo, ls.WordThree, ls.WordFour, ls.WordFive, ls.WordSix).
 			Count(&count).Error
 		if err != nil {
-			return err
+			return inserted, err
 		}
 
 		// Only insert if it doesn't exist
 		if count == 0 {
 			if err := db.Create(&ls).Error; err != nil {
-				return err
+				return inserted, err
 			}
+			inserted++
 		}
 	}
-	return nil
+	return inserted, nil
 }
 
 // GenerateAndSaveRandomLuckySix generates LuckySix combinations using random LuckyFive entries
@@ -336,7 +362,7 @@ func GenerateAndSaveRandomLuckySix(db *gorm.DB) error {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= batchSize {
-						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+						if _, err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 							return err
 						}
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
@@ -380,7 +406,7 @@ func GenerateAndSaveRandomLuckySix(db *gorm.DB) error {
 
 					// Batch insert when buffer is full
 					if len(luckySixBatch) >= batchSize {
-						if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+						if _, err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 							return err
 						}
 						luckySixBatch = luckySixBatch[:0] // Clear the batch
@@ -401,7 +427,7 @@ func GenerateAndSaveRandomLuckySix(db *gorm.DB) error {
 
 	// Insert any remaining records in the batch
 	if len(luckySixBatch) > 0 {
-		if err := insertLuckySixBatch(db, luckySixBatch); err != nil {
+		if _, err := insertLuckySixBatch(db, luckySixBatch); err != nil {
 			return err
 		}
 	}
