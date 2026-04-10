@@ -257,11 +257,40 @@ func main() {
 				log.SetOutput(logWriter{})
 			}
 
-			if err := service.GenerateWalletsFromLuckySix(db); err != nil {
+			count, _ := cmd.Flags().GetInt("count")
+			if count == 0 {
+				count = 1000 // Default count
+			}
+
+			// Check for cron lock
+			runFunc := func() error {
+				rows, err := service.GenerateWalletsFromLuckySix(db, count)
+				if err != nil {
+					return err
+				}
+				// Send Telegram notification in prod mode
+				if prodMode {
+					return service.SendGenerationNotification("Wallet", rows, nil)
+				}
+				return nil
+			}
+
+			acquired, err := service.CheckAndRunCommand("wallet-generate", runFunc)
+			if err != nil {
+				if prodMode {
+					service.SendGenerationNotification("Wallet", 0, err)
+				}
 				log.Fatal(err)
+			}
+			if !acquired {
+				log.Println("wallet generate is already running, skipping...")
+				if prodMode {
+					service.SendGenerationNotification("Wallet", -1, nil)
+				}
 			}
 		},
 	}
+	generateWalletCmd.Flags().IntP("count", "c", 1000, "Number of wallets to generate")
 
 	walletCmd.AddCommand(generateWalletCmd)
 

@@ -10,17 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// GenerateWalletsFromLuckySix generates 12-word BIP39 wallet mnemonics from LuckySix combinations.
-// It uses the 6 word indices from LuckySix as the first 6 words and generates the remaining 6 words
-// to create a valid 12-word mnemonic. The generation is resumable from the last saved wallet.
-func GenerateWalletsFromLuckySix(db *gorm.DB) error {
-	// Get the BIP39 wordlist
+func GenerateWalletsFromLuckySix(db *gorm.DB, limit int) (int64, error) {
 	wordlist := bip39.GetWordList()
 	if len(wordlist) != 2048 {
-		return fmt.Errorf("expected 2048 words in BIP39 wordlist, got %d", len(wordlist))
+		return 0, fmt.Errorf("expected 2048 words in BIP39 wordlist, got %d", len(wordlist))
 	}
 
-	// Find the last processed LuckySix ID from WalletBalance
 	var lastWallet entity.WalletBalance
 	err := db.Order("lucky_six_id desc").First(&lastWallet).Error
 
@@ -30,34 +25,45 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 		log.Printf("Resuming from LuckySixID: %d", startLuckySixID)
 	} else if err == gorm.ErrRecordNotFound {
 		log.Println("No previous wallets found, starting from beginning")
-		// Get the first LuckySix ID
 		var firstSix entity.LuckySix
 		if err := db.Order("id asc").First(&firstSix).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				log.Println("No LuckySix records found. Please generate LuckySix first.")
-				return nil
+				return 0, nil
 			}
-			return err
+			return 0, err
 		}
 		startLuckySixID = firstSix.ID
 	} else {
-		return err
+		return 0, err
 	}
 
-	// Get LuckySix records starting from startLuckySixID
 	const batchSize = 1000
 	offset := 0
+	walletsCreated := int64(0)
 
 	for {
+		if limit > 0 && walletsCreated >= int64(limit) {
+			break
+		}
+
+		fetchLimit := batchSize
+		if limit > 0 {
+			remaining := int64(limit) - walletsCreated
+			if remaining < int64(batchSize) {
+				fetchLimit = int(remaining)
+			}
+		}
+
 		var luckySixes []entity.LuckySix
 		err := db.Where("id >= ?", startLuckySixID).
 			Order("id asc").
-			Limit(batchSize).
+			Limit(fetchLimit).
 			Offset(offset).
 			Find(&luckySixes).Error
 
 		if err != nil {
-			return err
+			return walletsCreated, err
 		}
 
 		if len(luckySixes) == 0 {
@@ -67,15 +73,16 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 		log.Printf("Processing batch of %d LuckySix records (offset: %d)", len(luckySixes), offset)
 
 		for _, luckySix := range luckySixes {
-			// Check if wallet already exists for this LuckySix
+			if limit > 0 && walletsCreated >= int64(limit) {
+				break
+			}
+
 			var count int64
 			db.Model(&entity.WalletBalance{}).Where("lucky_six_id = ?", luckySix.ID).Count(&count)
 			if count > 0 {
 				continue
 			}
 
-			// Convert word indices to words (BIP39 uses 0-indexed, but stored as 1-indexed)
-			// Validate that all word indices are within valid range (1-2048)
 			if luckySix.WordOne < 1 || luckySix.WordOne > 2048 ||
 				luckySix.WordTwo < 1 || luckySix.WordTwo > 2048 ||
 				luckySix.WordThree < 1 || luckySix.WordThree > 2048 ||
@@ -97,37 +104,31 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 				wordlist[luckySix.WordSix-1],
 			}
 
-			// Generate a valid 12-word mnemonic using the first 6 words
-			// We need to generate the remaining 6 words that make it valid
 			mnemonic, err := generateValidMnemonic(words, wordlist)
 			if err != nil {
 				log.Printf("Failed to generate mnemonic for LuckySix ID %d: %v", luckySix.ID, err)
 				continue
 			}
 
-			// Save wallet to database
 			wallet := entity.WalletBalance{
 				LuckySixID: luckySix.ID,
 				Mnemonic:   mnemonic,
 			}
 
-			// Handle duplicate key violations by retrying with a different mnemonic
 			maxRetries := 5
 			var createErr error
 			for retry := 0; retry < maxRetries; retry++ {
 				createErr = db.Create(&wallet).Error
 				if createErr == nil {
-					break // Success
+					break
 				}
 
-				// Check if it's a duplicate key violation
 				if strings.Contains(createErr.Error(), "duplicate key value violates unique constraint") ||
 					strings.Contains(createErr.Error(), "unique constraint") ||
 					strings.Contains(createErr.Error(), "duplicate key") {
 					log.Printf("Duplicate mnemonic detected for LuckySix ID %d (attempt %d/%d), regenerating...",
 						luckySix.ID, retry+1, maxRetries)
 
-					// Generate a new mnemonic and try again
 					mnemonic, err = generateValidMnemonic(words, wordlist)
 					if err != nil {
 						log.Printf("Failed to regenerate mnemonic for LuckySix ID %d: %v", luckySix.ID, err)
@@ -135,7 +136,6 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 					}
 					wallet.Mnemonic = mnemonic
 				} else {
-					// For other errors, break and return the error
 					break
 				}
 			}
@@ -143,16 +143,17 @@ func GenerateWalletsFromLuckySix(db *gorm.DB) error {
 			if createErr != nil {
 				log.Printf("Failed to save wallet for LuckySix ID %d after %d attempts: %v",
 					luckySix.ID, maxRetries, createErr)
-				continue // Skip this record and continue with others
+				continue
 			}
+			walletsCreated++
 		}
 
-		log.Printf("Completed batch: processed %d wallets", len(luckySixes))
+		log.Printf("Completed batch: processed %d wallets, total created: %d", len(luckySixes), walletsCreated)
 		offset += batchSize
 	}
 
-	log.Println("All wallets generated and saved")
-	return nil
+	log.Printf("All wallets generated and saved. Total: %d", walletsCreated)
+	return walletsCreated, nil
 }
 
 // generateValidMnemonic takes the first 6 words and generates a valid 12-word BIP39 mnemonic.

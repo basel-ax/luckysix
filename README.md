@@ -288,6 +288,28 @@ This command will:
 - Store wallets in the `wallet_balances` table with the complete mnemonic
 - Resume from the last processed LuckySix ID if interrupted
 - Skip already processed LuckySix combinations automatically
+- Generate 1000 wallets per run by default
+
+To customize the number of wallets generated:
+
+```bash
+go run main.go wallet generate --count 500
+go run main.go wallet generate -c 2000
+```
+
+### Wallet Generation Cron Job
+
+For automated wallet generation every 5 minutes:
+
+```bash
+*/5 * * * * cd /path/to/luckysix && go run main.go wallet generate --prod >> /var/log/luckysix-wallet.log 2>&1
+```
+
+Or with custom count:
+
+```bash
+*/5 * * * * cd /path/to/luckysix && go run main.go wallet generate --count 2000 --prod >> /var/log/luckysix-wallet.log 2>&1
+```
 
 ### Generation Order
 
