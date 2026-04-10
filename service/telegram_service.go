@@ -56,11 +56,11 @@ func SendGenerationNotification(command string, rowsCreated int64, err error) er
 	var message string
 
 	if err != nil {
-		message = fmt.Sprintf("❌ %s generation completed with error: %v", command, err)
+		message = fmt.Sprintf("%s: error", command)
 	} else if rowsCreated == -1 {
-		message = fmt.Sprintf("⏭️ %s skipped — already running", command)
+		message = fmt.Sprintf("%s: skipped", command)
 	} else {
-		message = fmt.Sprintf("✅ %s generation completed. Rows created/updated: %d", command, rowsCreated)
+		message = fmt.Sprintf("%s: %d", command, rowsCreated)
 	}
 
 	return TelegramNotification(message)
