@@ -38,7 +38,7 @@ func GenerateWalletsFromLuckySix(db *gorm.DB, limit int) (int64, error) {
 		return 0, err
 	}
 
-	const batchSize = 1000
+	const batchSize = 5000
 	offset := 0
 	walletsCreated := int64(0)
 
