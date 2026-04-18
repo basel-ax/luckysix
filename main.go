@@ -290,7 +290,7 @@ func main() {
 			}
 		},
 	}
-	generateWalletCmd.Flags().IntP("count", "c", 1000, "Number of wallets to generate")
+	generateWalletCmd.Flags().IntP("count", "c", 100000, "Number of wallets to generate")
 
 	walletCmd.AddCommand(generateWalletCmd)
 
