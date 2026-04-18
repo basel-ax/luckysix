@@ -204,14 +204,14 @@ Edit your crontab with `crontab -e` and add the following entries:
 # LuckySix Cron Jobs
 # Run generation commands at specified intervals
 
-# Generate LuckyTwo combinations (every 20 minutes)
-*/20 * * * * cd /path/to/luckysix && go run main.go luckytwo generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckyTwo combinations (every 10 minutes) - processes all 4.2M combinations quickly
+*/10 * * * * cd /path/to/luckysix && go run main.go luckytwo generate --prod >> /var/log/luckysix.log 2>&1
 
-# Generate LuckyFive combinations (every 30 minutes)
-*/30 * * * * cd /path/to/luckysix && go run main.go luckyfive generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckyFive combinations (every 20 minutes) - processes 100 random combinations per run
+*/20 * * * * cd /path/to/luckysix && go run main.go luckyfive generate --prod >> /var/log/luckysix.log 2>&1
 
-# Generate LuckySix combinations (every 45 minutes)
-*/45 * * * * cd /path/to/luckysix && go run main.go luckysix generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckySix combinations (every 30 minutes) - processes 10,000 combinations per run
+*/30 * * * * cd /path/to/luckysix && go run main.go luckysix generate --prod >> /var/log/luckysix.log 2>&1
 ```
 
 ### Alternative: Single Cron Job Running All Commands
@@ -288,7 +288,7 @@ This command will:
 - Store wallets in the `wallet_balances` table with the complete mnemonic
 - Resume from the last processed LuckySix ID if interrupted
 - Skip already processed LuckySix combinations automatically
-- Generate 1000 wallets per run by default
+- Generate 100000 wallets per run by default
 
 To customize the number of wallets generated:
 
@@ -299,16 +299,16 @@ go run main.go wallet generate -c 2000
 
 ### Wallet Generation Cron Job
 
-For automated wallet generation every 5 minutes:
+For automated wallet generation every 10 minutes (optimized for higher count):
 
 ```bash
-*/5 * * * * cd /path/to/luckysix && go run main.go wallet generate --prod >> /var/log/luckysix-wallet.log 2>&1
+*/10 * * * * cd /path/to/luckysix && go run main.go wallet generate --prod >> /var/log/luckysix-wallet.log 2>&1
 ```
 
 Or with custom count:
 
 ```bash
-*/5 * * * * cd /path/to/luckysix && go run main.go wallet generate --count 2000 --prod >> /var/log/luckysix-wallet.log 2>&1
+*/10 * * * * cd /path/to/luckysix && go run main.go wallet generate --count 50000 --prod >> /var/log/luckysix-wallet.log 2>&1
 ```
 
 ### Generation Order

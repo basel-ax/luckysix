@@ -259,7 +259,7 @@ func main() {
 
 			count, _ := cmd.Flags().GetInt("count")
 			if count == 0 {
-				count = 1000 // Default count
+				count = 100000 // Default count
 			}
 
 			// Check for cron lock
