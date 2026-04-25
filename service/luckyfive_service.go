@@ -83,9 +83,8 @@ func GenerateAndSaveLuckyFive(db *gorm.DB, all bool) (int64, error) {
 		}
 		log.Printf("Completed generation of all LuckyFive combinations. Total generated: %d", generated)
 	} else {
-		// Generate random combinations, say 1000 per run
 		generated := 0
-		maxGenerate := 1000
+		maxGenerate := 250000
 		for generated < maxGenerate {
 			// Generate 5 distinct random indices
 			indices := make(map[uint]bool)
