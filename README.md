@@ -207,8 +207,8 @@ Edit your crontab with `crontab -e` and add the following entries:
 # Generate LuckyTwo combinations (every 10 minutes) - processes all 4.2M combinations quickly
 */10 * * * * cd /path/to/luckysix && go run main.go luckytwo generate --prod >> /var/log/luckysix.log 2>&1
 
-# Generate LuckyFive combinations (every 20 minutes) - processes 250000 random combinations per run
-*/20 * * * * cd /path/to/luckysix && go run main.go luckyfive generate --prod >> /var/log/luckysix.log 2>&1
+# Generate LuckyFive combinations (every 30 minutes) - processes 250000 random combinations per run
+*/30 * * * * cd /path/to/luckysix && go run main.go luckyfive generate --prod >> /var/log/luckysix.log 2>&1
 
 # Generate LuckySix combinations (every 30 minutes) - processes 10,000 combinations per run
 */30 * * * * cd /path/to/luckysix && go run main.go luckysix generate --prod >> /var/log/luckysix.log 2>&1
