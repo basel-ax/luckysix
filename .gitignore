@@ -21,6 +21,9 @@
 # Log files
 *.log
 
+# Temporary files
+tmp/
+
 # Dependency directories (remove the comment below to include it)
 vendor/
 

@@ -10,7 +10,7 @@ import (
 
 const (
 	// LockFileDir is the directory where lock files are stored
-	LockFileDir = "/tmp/luckysix"
+	LockFileDir = "tmp"
 	// LockFileTimeout is the maximum time a lock can exist before it's considered stale
 	LockFileTimeout = 24 * time.Hour
 )
