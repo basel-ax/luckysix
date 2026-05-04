@@ -193,7 +193,8 @@ TELEGRAM_TOPIC_ID=your_topic_id_here  # Optional: leave empty for group chat, se
 ## Cron Job Setup
 
 You can set up cron jobs to run the generation commands automatically. The application includes:
-- **Production mode (`--prod`)**: Suppresses console output and sends Telegram notifications when commands complete
+- **Quiet mode (`--prod`)**: Suppress console output and disable Telegram notifications (use for cron jobs)
+- **Debug mode (default, no flag)**: Console output enabled, Telegram notifications sent with detailed info
 - **Duplicate run prevention**: Lock files prevent the same command from running multiple times simultaneously
 
 ### Crontab Configuration
@@ -212,6 +213,9 @@ Edit your crontab with `crontab -e` and add the following entries:
 
 # Generate LuckySix combinations (every 30 minutes) - processes 10,000 combinations per run
 */30 * * * * cd /path/to/luckysix && go run main.go luckysix generate --prod >> /var/log/luckysix.log 2>&1
+
+# Send daily statistics to Telegram (at midnight, debug mode sends notification)
+0 0 * * * cd /path/to/luckysix && /usr/bin/flock -w 0 /tmp/luckysix/stats.lock go run main.go stats >> /var/log/luckysix-stats.log 2>&1
 ```
 
 ### Alternative: Single Cron Job Running All Commands

@@ -89,6 +89,8 @@ func main() {
 
 	var rootCmd = &cobra.Command{Use: "luckysix"}
 
+	rootCmd.PersistentFlags().BoolVarP(&prodMode, "prod", "p", false, "Quiet mode: suppress console output and disable Telegram")
+
 	var luckytwoCmd = &cobra.Command{
 		Use:   "luckytwo",
 		Short: "Commands for LuckyTwo operations",
@@ -98,7 +100,7 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckyTwo combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Suppress logs in prod mode
+			// Suppress logs in prod mode (quiet for cron)
 			if prodMode {
 				log.SetOutput(logWriter{})
 			}
@@ -110,7 +112,7 @@ func main() {
 					return err
 				}
 				// Send Telegram notification in prod mode
-				if prodMode {
+				if !prodMode {
 					return service.SendGenerationNotification("LuckyTwo", rows, nil)
 				}
 				return nil
@@ -118,14 +120,14 @@ func main() {
 
 			acquired, err := service.CheckAndRunCommand("luckytwo-generate", runFunc)
 			if err != nil {
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckyTwo", 0, err)
 				}
 				log.Fatal(err)
 			}
 			if !acquired {
 				log.Println("luckytwo generate is already running, skipping...")
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckyTwo", -1, nil)
 				}
 			}
@@ -143,7 +145,7 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckyFive combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Suppress logs in prod mode
+			// Suppress logs in prod mode (quiet for cron)
 			if prodMode {
 				log.SetOutput(logWriter{})
 			}
@@ -157,7 +159,7 @@ func main() {
 					return err
 				}
 				// Send Telegram notification in prod mode
-				if prodMode {
+				if !prodMode {
 					return service.SendGenerationNotification("LuckyFive", rows, nil)
 				}
 				return nil
@@ -165,14 +167,14 @@ func main() {
 
 			acquired, err := service.CheckAndRunCommand("luckyfive-generate", runFunc)
 			if err != nil {
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckyFive", 0, err)
 				}
 				log.Fatal(err)
 			}
 			if !acquired {
 				log.Println("luckyfive generate is already running, skipping...")
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckyFive", -1, nil)
 				}
 			}
@@ -191,7 +193,7 @@ func main() {
 		Use:   "generate",
 		Short: "Generate LuckySix combinations from LuckyFive and LuckyTwo",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Suppress logs in prod mode
+			// Suppress logs in prod mode (quiet for cron)
 			if prodMode {
 				log.SetOutput(logWriter{})
 			}
@@ -203,7 +205,7 @@ func main() {
 					return err
 				}
 				// Send Telegram notification in prod mode
-				if prodMode {
+				if !prodMode {
 					return service.SendGenerationNotification("LuckySix", rows, nil)
 				}
 				return nil
@@ -211,14 +213,14 @@ func main() {
 
 			acquired, err := service.CheckAndRunCommand("luckysix-generate", runFunc)
 			if err != nil {
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckySix", 0, err)
 				}
 				log.Fatal(err)
 			}
 			if !acquired {
 				log.Println("luckysix generate is already running, skipping...")
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("LuckySix", -1, nil)
 				}
 			}
@@ -229,7 +231,7 @@ func main() {
 		Use:   "generate-random",
 		Short: "Generate LuckySix combinations using random LuckyFive entries",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Suppress logs in prod mode
+			// Suppress logs in prod mode (quiet for cron)
 			if prodMode {
 				log.SetOutput(logWriter{})
 			}
@@ -252,7 +254,7 @@ func main() {
 		Use:   "generate",
 		Short: "Generate 12-word wallet mnemonics from LuckySix combinations",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Suppress logs in prod mode
+			// Suppress logs in prod mode (quiet for cron)
 			if prodMode {
 				log.SetOutput(logWriter{})
 			}
@@ -269,7 +271,7 @@ func main() {
 					return err
 				}
 				// Send Telegram notification in prod mode
-				if prodMode {
+				if !prodMode {
 					return service.SendGenerationNotification("Wallet", rows, nil)
 				}
 				return nil
@@ -277,14 +279,14 @@ func main() {
 
 			acquired, err := service.CheckAndRunCommand("wallet-generate", runFunc)
 			if err != nil {
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("Wallet", 0, err)
 				}
 				log.Fatal(err)
 			}
 			if !acquired {
 				log.Println("wallet generate is already running, skipping...")
-				if prodMode {
+				if !prodMode {
 					service.SendGenerationNotification("Wallet", -1, nil)
 				}
 			}
@@ -292,15 +294,63 @@ func main() {
 	}
 	generateWalletCmd.Flags().IntP("count", "c", 100000, "Number of wallets to generate")
 
-	walletCmd.AddCommand(generateWalletCmd)
+walletCmd.AddCommand(generateWalletCmd)
 
-	// Add global --prod flag
-	rootCmd.PersistentFlags().BoolVarP(&prodMode, "prod", "p", false, "Production mode: suppress console output and send Telegram notifications")
+	var statsCmd = &cobra.Command{
+		Use:   "stats",
+		Short: "Send project statistics to Telegram",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Suppress logs in prod mode (quiet for cron)
+			if prodMode {
+				log.SetOutput(logWriter{})
+			}
+
+			// Get stats from database
+			var luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance int64
+
+			// Count luckytwos
+			db.Model(&entity.Luckytwo{}).Count(&luckytwosCount)
+			// Count luckyfives
+			db.Model(&entity.LuckyFive{}).Count(&luckyfivesCount)
+			// Count luckysixes
+			db.Model(&entity.LuckySix{}).Count(&luckysixesCount)
+			// Count total wallets
+			db.Model(&entity.WalletBalance{}).Count(&walletsCount)
+			// Count wallets with non-empty address
+			db.Model(&entity.WalletBalance{}).Where("address IS NOT NULL AND address != ''").Count(&walletsWithAddress)
+			// Count wallets with balance > 0
+			db.Model(&entity.WalletBalance{}).Where("balance IS NOT NULL AND balance != '0' AND balance != ''").Count(&walletsWithBalance)
+
+			// Format the message
+			message := fmt.Sprintf(`📊 LuckySix Project Statistics
+
+🔢 Combinations Generated:
+• LuckyTwos: %d
+• LuckyFives: %d
+• LuckySixes: %d
+
+💰 Wallets:
+• Total Wallets: %d
+• With Address: %d
+• With Balance > 0: %d`, luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance)
+
+			// Print to stdout
+			fmt.Println(message)
+
+			// Send to Telegram in debug mode (when --prod is NOT set)
+			if !prodMode {
+				if err := service.TelegramNotification(message); err != nil {
+					log.Printf("Failed to send Telegram notification: %v", err)
+				}
+			}
+		},
+	}
 
 	rootCmd.AddCommand(luckytwoCmd)
 	rootCmd.AddCommand(luckyfiveCmd)
 	rootCmd.AddCommand(luckysixCmd)
 	rootCmd.AddCommand(walletCmd)
+	rootCmd.AddCommand(statsCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
