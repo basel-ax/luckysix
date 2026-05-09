@@ -306,7 +306,7 @@ walletCmd.AddCommand(generateWalletCmd)
 			}
 
 			// Get stats from database
-			var luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance int64
+			var luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance, walletsWithCosmosAddress, walletsWithCosmosBalance int64
 
 			// Count luckytwos
 			db.Model(&entity.Luckytwo{}).Count(&luckytwosCount)
@@ -320,6 +320,10 @@ walletCmd.AddCommand(generateWalletCmd)
 			db.Model(&entity.WalletBalance{}).Where("address IS NOT NULL AND address != ''").Count(&walletsWithAddress)
 			// Count wallets with balance > 0
 			db.Model(&entity.WalletBalance{}).Where("balance IS NOT NULL AND balance != '0' AND balance != ''").Count(&walletsWithBalance)
+			// Count wallets with non-empty cosmos address
+			db.Model(&entity.WalletBalance{}).Where("cosmos_address IS NOT NULL AND cosmos_address != ''").Count(&walletsWithCosmosAddress)
+			// Count wallets with cosmos balance > 0
+			db.Model(&entity.WalletBalance{}).Where("cosmos_balance IS NOT NULL AND cosmos_balance != '0' AND cosmos_balance != ''").Count(&walletsWithCosmosBalance)
 
 			// Format the message
 			message := fmt.Sprintf(`📊 LuckySix Project Statistics
@@ -332,7 +336,11 @@ walletCmd.AddCommand(generateWalletCmd)
 💰 Wallets:
 • Total Wallets: %d
 • With Address: %d
-• With Balance > 0: %d`, luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance)
+• With Balance > 0: %d
+
+🌌 Cosmos Wallets:
+• With Cosmos Address: %d
+• With Cosmos Balance > 0: %d`, luckytwosCount, luckyfivesCount, luckysixesCount, walletsCount, walletsWithAddress, walletsWithBalance, walletsWithCosmosAddress, walletsWithCosmosBalance)
 
 			// Print to stdout
 			fmt.Println(message)
